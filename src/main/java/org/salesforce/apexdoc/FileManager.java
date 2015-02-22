@@ -9,18 +9,32 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.velocity.Template;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.Velocity;
+import org.apache.velocity.app.VelocityEngine;
+import org.apache.velocity.runtime.RuntimeConstants;
+import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
+import org.apache.velocity.tools.generic.EscapeTool;
+import org.salesforce.apexdoc.model.ApexModel;
+import org.salesforce.apexdoc.model.ClassModel;
+import org.salesforce.apexdoc.model.MethodModel;
+import org.salesforce.apexdoc.model.PropertyModel;
+
 public class FileManager {
-    FileOutputStream fos;
-    DataOutputStream dos;
-    String path;
-    public String header;
-    public String APEX_DOC_PATH = "";
-    public StringBuffer infoMessages;
+    private FileOutputStream fos;
+    private DataOutputStream dos;
+    private String path;
+    private StringBuffer infoMessages;
 
     public FileManager() {
         infoMessages = new StringBuffer();
@@ -169,123 +183,24 @@ public class FileManager {
      * @return html string
      */
     private String htmlForClassModel(ClassModel cModel, String hostedSourceURL) {
-        String contents = "";
-        contents += "<h2 class='section-title'>" +
-                strLinkfromModel(cModel, cModel.getTopmostClassName(), hostedSourceURL) +
-                cModel.getClassName() + "</a>" +
-                "</h2>";
-
-        contents += "<div class='classSignature'>" +
-                strLinkfromModel(cModel, cModel.getTopmostClassName(), hostedSourceURL) +
-                escapeHTML(cModel.getNameLine()) + "</a></div>";
-
-        if (cModel.getDescription() != "")
-            contents += "<div class='classDetails'>" + escapeHTML(cModel.getDescription());
-        if (cModel.getAuthor() != "")
-            contents += "<br/><br/>" + escapeHTML(cModel.getAuthor());
-        if (cModel.getDate() != "")
-            contents += "<br/>" + escapeHTML(cModel.getDate());
-        contents += "</div><p/>";
-
-        if (cModel.getProperties().size() > 0) {
-            // start Properties
-            contents +=
-                    "<h2 class='subsection-title'>Properties</h2>" +
-                            "<div class='subsection-container'> " +
-                            "<table class='properties' > ";
-
-            for (PropertyModel prop : cModel.getPropertiesSorted()) {
-                contents += "<tr class='propertyscope" + prop.getScope() + "'><td class='clsPropertyName'>" +
-                        prop.getPropertyName() + "</td>";
-                contents += "<td><div class='clsPropertyDeclaration'>" +
-                        strLinkfromModel(prop, cModel.getTopmostClassName(), hostedSourceURL) +
-                        escapeHTML(prop.getNameLine()) + "</a></div>";
-                contents += "<div class='clsPropertyDescription'>" + escapeHTML(prop.getDescription()) + "</div></tr>";
-            }
-            // end Properties
-            contents += "</table></div><p/>";
-        }
-
-        if (cModel.getMethods().size() > 0) {
-            // start Methods
-            contents +=
-                    "<h2 class='subsection-title'>Methods</h2>" +
-                            "<div class='subsection-container'> ";
-
-            // method Table of Contents (TOC)
-            contents += "<ul class='methodTOC'>";
-            for (MethodModel method : cModel.getMethodsSorted()) {
-                contents += "<li class='methodscope" + method.getScope() + "' >";
-                contents += "<a class='methodTOCEntry' href='#" + method.getMethodName() + "'>"
-                        + method.getMethodName() + "</a>";
-                if (method.getDescription() != "")
-                    contents += "<div class='methodTOCDescription'>" + method.getDescription() + "</div>";
-                contents += "</li>";
-            }
-            contents += "</ul>";
-
-            // full method display
-            for (MethodModel method : cModel.getMethodsSorted()) {
-                contents += "<div class='methodscope" + method.getScope() + "' >";
-                contents += "<h2 class='methodHeader'><a id='" + method.getMethodName() + "'/>"
-                        + method.getMethodName() + "</h2>" +
-                        "<div class='methodSignature'>" +
-                        strLinkfromModel(method, cModel.getTopmostClassName(), hostedSourceURL) +
-                        escapeHTML(method.getNameLine()) + "</a></div>";
-
-                if (method.getDescription() != "")
-                    contents += "<div class='methodDescription'>" + escapeHTML(method.getDescription()) + "</div>";
-
-                if (method.getParams().size() > 0) {
-                    contents += "<div class='methodSubTitle'>Parameters</div>";
-                    for (String param : method.getParams()) {
-                        param = escapeHTML(param);
-                        if (param != null && param.trim().length() > 0) {
-                            Pattern p = Pattern.compile("\\s");
-                            Matcher m = p.matcher(param);
-                            
-                            String paramName;
-                            String paramDescription;
-                            if (m.find()) {
-                            	int ich = m.start();
-                                paramName = param.substring(0, ich);
-                                paramDescription = param.substring(ich + 1);
-                            } else {
-                                paramName = param;
-                                paramDescription = null;
-                            }
-                            contents += "<div class='paramName'>" + paramName + "</div>";
-
-                            if (paramDescription != null)
-                                contents += "<div class='paramDescription'>" + paramDescription + "</div>";
-                        }
-                    }
-                    // end Parameters
-                }
-
-                if (method.getReturns() != "") {
-                    contents += "<div class='methodSubTitle'>Return Value</div>";
-                    contents += "<div class='methodReturns'>" + escapeHTML(method.getReturns()) + "</div>";
-                }
-
-                if (method.getAuthor() != "") {
-                    contents += "<div class='methodSubTitle'>Author</div>";
-                    contents += "<div class='methodReturns'>" + escapeHTML(method.getAuthor()) + "</div>";
-                }
-
-                if (method.getDate() != "") {
-                    contents += "<div class='methodSubTitle'>Date</div>";
-                    contents += "<div class='methodReturns'>" + escapeHTML(method.getDate()) + "</div>";
-                }
-
-                // end current method
-                contents += "</div>";
-            }
-            // end all methods
-            contents += "</div>";
-        }
-
-        return contents;
+    	
+    	Velocity.setProperty(RuntimeConstants.RESOURCE_LOADER, "classpath"); 
+        Velocity.setProperty("classpath.resource.loader.class", ClasspathResourceLoader.class.getName());
+        Velocity.init();
+ 
+        // Getting the Template
+        Template temp = Velocity.getTemplate("main/resource/templates/classPage.vm");
+ 
+        // Create a context and add data to the template placeholder
+        VelocityContext context = new VelocityContext();
+        context.put("class", cModel);
+        context.put("hostedSourceURL", hostedSourceURL);
+        context.put("esc", new EscapeTool());
+ 
+        // Fetch template into a StringWriter
+        StringWriter writer = new StringWriter();
+        temp.merge( context, writer );
+        return writer.toString();
     }
 
     // create our Class Group content files
@@ -323,57 +238,49 @@ public class FileManager {
     private String getPageLinks(TreeMap<String, ClassGroup> mapGroupNameToClassGroup, ArrayList<ClassModel> cModels) {
         
         // this is the only place we need the list of class models sorted by name.
+    	//TODO: replace with comparator
         TreeMap<String, ClassModel> tm = new TreeMap<String, ClassModel>();
         for (ClassModel cm : cModels)
             tm.put(cm.getClassName().toLowerCase(), cm);
         cModels = new ArrayList<ClassModel>(tm.values());
         
-        String links = "<td width='20%' vertical-align='top' >";
-        links += "<div class='sidebar'><div class='navbar'><nav role='navigation'><ul id='mynavbar'>";
-        links += "<li id='idMenuindex'><a href='.' onclick=\"gotomenu('index.html', event);return false;\" class='nav-item'>Home</a></li>";
-
         // add a bucket ClassGroup for all Classes without a ClassGroup specified
         mapGroupNameToClassGroup.put("Miscellaneous", new ClassGroup("Miscellaneous", null));
-
-        // create a sorted list of ClassGroups
-
-        for (String strGroup : mapGroupNameToClassGroup.keySet()) {
-            ClassGroup cg = mapGroupNameToClassGroup.get(strGroup);
-            String strGoTo = "onclick=\"gotomenu(document.location.href, event);return false;\"";
-            if (cg.getContentFilename() != null)
-                strGoTo = "onclick=\"gotomenu('" + cg.getContentFilename() + ".html" + "', event);return false;\"";
-            links += "<li class='header' id='idMenu" + cg.getContentFilename() + 
-                    "'><a class='nav-item nav-section-title' href='.' " +
-                    strGoTo + " class='nav-item'>" + strGroup + "<span class='caret'></span></a></li>";
-            links += "<ul>";
-
-            // even though this algorithm is O(n^2), it was timed at just 12
-            // milliseconds, so not an issue!
-            for (ClassModel cModel : cModels) {
-                if (strGroup.equals(cModel.getClassGroup())
-                        || (cModel.getClassGroup() == null && strGroup == "Miscellaneous")) {
-                    if (cModel.getNameLine() != null && cModel.getNameLine().trim().length() > 0) {
-                        String fileName = cModel.getClassName();
-                        links += "<li class='subitem classscope" + cModel.getScope() + "' id='idMenu" + fileName +
-                                "'><a href='.' onclick=\"gotomenu('" + fileName + ".html', event);return false;\" class='nav-item sub-nav-item scope" +
-                                cModel.getScope() + "'>" +
-                                fileName + "</a></li>";
-                    }
-                }
+        
+        Map<String, List<ClassModel>> classesByGroup = new HashMap<String, List<ClassModel>>();
+        for (ClassModel cModel : cModels) {
+        	if (cModel.getNameLine() != null && cModel.getNameLine().trim().length() > 0) { //TODO: Replace with isBlank
+		    	String grp = cModel.getClassGroup() != null?cModel.getClassGroup():"Miscellaneous";
+		    	if(!classesByGroup.containsKey(grp)){
+		    		classesByGroup.put(grp, new ArrayList<ClassModel>());
+		    	}
+                classesByGroup.get(grp).add(cModel);
             }
-
-            links += "</ul>";
         }
-
-        links += "</ul></nav></div></div></div>";
-
-        links += "</td>";
-        return links;
+        
+        
+        Velocity.setProperty(RuntimeConstants.RESOURCE_LOADER, "classpath"); 
+        Velocity.setProperty("classpath.resource.loader.class", ClasspathResourceLoader.class.getName());
+        Velocity.init();
+ 
+        // Getting the Template
+        Template temp = Velocity.getTemplate("main/resource/templates/pageLinks.vm");
+ 
+        // Create a context and add data to the template placeholder
+        VelocityContext context = new VelocityContext();
+        context.put("groups", mapGroupNameToClassGroup);
+        context.put("classes", classesByGroup);
+ 
+        // Fetch template into a StringWriter
+        StringWriter writer = new StringWriter();
+        temp.merge( context, writer );
+        
+        return writer.toString();
     }
 
     private void docopy(String source, String target) throws Exception {
 
-        InputStream is = this.getClass().getResourceAsStream(source);
+        InputStream is = this.getClass().getClassLoader().getResourceAsStream("main/resource/"+source);
         // InputStreamReader isr = new InputStreamReader(is);
         // BufferedReader reader = new BufferedReader(isr);
         FileOutputStream to = new FileOutputStream(target + "/" + source);

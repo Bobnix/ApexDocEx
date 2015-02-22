@@ -1,6 +1,12 @@
-package org.salesforce.apexdoc;
+package org.salesforce.apexdoc.model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.salesforce.apexdoc.ApexDoc;
 
 public class MethodModel extends ApexModel {
 
@@ -24,6 +30,30 @@ public class MethodModel extends ApexModel {
 
     public void setParams(ArrayList<String> params) {
         this.params = params;
+    }
+    
+    public List<List<String>> getSplitParams() {
+    	List<List<String>> splitParams = new ArrayList<List<String>>();
+    	for (String param : params) {
+    		
+            if (param != null && param.trim().length() > 0) {
+                Pattern p = Pattern.compile("\\s");
+                Matcher m = p.matcher(param);
+                
+                String paramName;
+                String paramDescription;
+                if (m.find()) {
+                	int ich = m.start();
+                    paramName = param.substring(0, ich);
+                    paramDescription = param.substring(ich + 1);
+                } else {
+                    paramName = param;
+                    paramDescription = null;
+                }
+                splitParams.add(Arrays.asList(paramName, paramDescription));
+            }
+        }
+    	return splitParams;
     }
 
     public String getReturnType() {

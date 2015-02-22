@@ -1,4 +1,4 @@
-package org.salesforce.apexdoc;
+package org.salesforce.apexdoc.model;
 
 import java.util.List;
 import java.util.ArrayList;

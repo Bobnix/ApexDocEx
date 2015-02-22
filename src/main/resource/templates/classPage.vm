@@ -1,0 +1,83 @@
+<h2 class='section-title'>
+	<a target='_blank' class='hostedSourceLink' href='${hostedSourceURL}${class.topmostClassName}.cls#L$class.inameLine'>$class.className</a>
+</h2>
+
+<div class='classSignature'>
+	<a target='_blank' class='hostedSourceLink' href='${hostedSourceURL}${class.topmostClassName}.cls#L$class.inameLine'>$esc.html($class.nameLine)</a>
+</div>
+
+#if ("$!class.description" != "")
+	<div class='classDetails'>$esc.html($class.description)
+#end
+#if ("$!class.author" != "")
+	<br/><br/>$esc.html($class.author)
+#end
+#if ("$!class.date" != "")
+	<br/>$esc.html($class.date)
+#end
+</div><p/>
+
+#if ($class.properties.size() > 0)
+	<h2 class='subsection-title'>Properties</h2>
+    <div class='subsection-container'>
+    	<table class='properties' >
+    	#foreach ($prop in $class.propertiesSorted)
+    		<tr class='propertyscope$prop.scope'>
+    			<td class='clsPropertyName'>$prop.propertyName</td>
+    			<td><div class='clsPropertyDeclaration'>
+    				<a target='_blank' class='hostedSourceLink' href='${hostedSourceURL}${class.topmostClassName}.cls#L$prop.inameLine'>$esc.html($prop.nameLine)</a>
+    			</div>
+    			<div class='clsPropertyDescription'>$esc.html($prop.description)</div>
+    		</tr>
+    	#end
+    	</table>
+    </div><p/>
+#end
+
+#if ($class.methods.size() > 0)
+	<h2 class='subsection-title'>Methods</h2>
+	<div class='subsection-container'>
+		<ul class='methodTOC'>
+			#foreach ($method in $class.methodsSorted)
+				<li class='methodscope$method.scope' >
+					<a class='methodTOCEntry' href='#$method.methodName'>$method.methodName</a>
+					#if ("$!method.description" != "")
+						<div class='methodTOCDescription'>$method.description</div>
+					#end
+				</li>
+			#end
+		</ul>
+		#foreach ($method in $class.methodsSorted)
+			<div class='methodscope$method.getScope' >
+				<h2 class='methodHeader'><a id='$method.methodName'/>$method.methodName</h2>
+				<div class='methodSignature'>
+					<a target='_blank' class='hostedSourceLink' href='${hostedSourceURL}${class.topmostClassName}.cls#L$method.inameLine'>$esc.html($method.nameLine)</a>
+				</div>
+				#if ("$!method.description" != "")
+					<div class='methodDescription'>$esc.html($method.description)</div>
+				#end
+				#if ($method.params.size() > 0)
+					<div class='methodSubTitle'>Parameters</div>
+					#foreach ($param in $method.splitParams)
+						<div class='paramName'>$param[0]</div>
+						#if ("$!param[1]" != "")
+							<div class='paramDescription'>$param[1]</div>
+						#end
+					#end
+				#end
+				#if ("$!method.returns" != "")
+					<div class='methodSubTitle'>Return Value</div>
+					<div class='methodReturns'>$esc.html($method.returns)</div>
+				#end
+				#if ("$!method.author" != "")
+					<div class='methodSubTitle'>Author</div>
+					<div class='methodReturns'>$esc.html($method.author)</div>
+				#end
+				#if ("$!method.date" != "")
+					<div class='methodSubTitle'>Date</div>
+					<div class='methodReturns'>$esc.html($method.date)</div>
+				#end
+			</div>
+		#end
+	</div>
+#end

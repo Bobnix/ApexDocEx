@@ -1,4 +1,6 @@
-package org.salesforce.apexdoc;
+package org.salesforce.apexdoc.model;
+
+import org.salesforce.apexdoc.ApexDoc;
 
 public class ApexModel {
     public String getNameLine() {

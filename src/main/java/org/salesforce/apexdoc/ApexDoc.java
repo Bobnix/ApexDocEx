@@ -14,11 +14,15 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.salesforce.apexdoc.model.ClassModel;
+import org.salesforce.apexdoc.model.MethodModel;
+import org.salesforce.apexdoc.model.PropertyModel;
+
 public class ApexDoc {
 
-    public static FileManager fm;
-    public static String[] rgstrScope;
-    public static String[] rgstrArgs;
+    private static FileManager fm;
+    public static String[] rgstrScope = {"global","public","webService"};
+    private static String[] rgstrArgs;
 
     public ApexDoc() {
         try {
@@ -79,14 +83,6 @@ public class ApexDoc {
                 printHelp();
                 System.exit(-1);
             }
-        }
-
-        // default scope to global and public if not specified
-        if (rgstrScope == null || rgstrScope.length == 0) {
-            rgstrScope = new String[3];
-            rgstrScope[0] = "global";
-            rgstrScope[1] = "public";
-            rgstrScope[2] = "webService";
         }
 
         // find all the files to parse
@@ -167,7 +163,7 @@ public class ApexDoc {
         return map;
     }
 
-    public static ClassModel parseFileContents(String filePath) {
+    private static ClassModel parseFileContents(String filePath) {
         try {
             FileInputStream fstream = new FileInputStream(filePath);
             // Get the object of DataInputStream

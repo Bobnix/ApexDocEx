@@ -1,4 +1,5 @@
-package org.salesforce.apexdoc;
+package org.salesforce.apexdoc.model;
+
 
 public class PropertyModel extends ApexModel {
 
