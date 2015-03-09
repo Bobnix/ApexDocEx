@@ -35,6 +35,7 @@ public class FileManager {
     private DataOutputStream dos;
     private String path;
     private StringBuffer infoMessages;
+    private String[] rgstrScope;
 
     public FileManager() {
         infoMessages = new StringBuffer();
@@ -55,13 +56,16 @@ public class FileManager {
         return out.toString();
     }
 
-    public FileManager(String path) {
+    public FileManager(String path, String[] scope) {
         infoMessages = new StringBuffer();
 
-        if (path == null || path.trim().length() == 0)
+        if (path == null || path.trim().length() == 0){
             this.path = ".";
-        else
+        } else {
             this.path = path;
+        }
+        
+        rgstrScope = scope;
     }
 
     private boolean createHTML(TreeMap<String, String> mapFNameToContent, IProgressMonitor monitor) {
@@ -107,10 +111,10 @@ public class FileManager {
         String str = "<tr><td colspan='2' style='text-align: center;' >";
         str += "Show: ";
 
-        for (int i = 0; i < ApexDoc.rgstrScope.length; i++) {
-            str += "<input type='checkbox' checked='checked' id='cbx" + ApexDoc.rgstrScope[i] +
-                    "' onclick='ToggleScope(\"" + ApexDoc.rgstrScope[i] + "\", this.checked );'>" +
-                    ApexDoc.rgstrScope[i] + "</input>&nbsp;&nbsp;";
+        for (int i = 0; i < rgstrScope.length; i++) {
+            str += "<input type='checkbox' checked='checked' id='cbx" + rgstrScope[i] +
+                    "' onclick='ToggleScope(\"" + rgstrScope[i] + "\", this.checked );'>" +
+                    rgstrScope[i] + "</input>&nbsp;&nbsp;";
         }
         str += "</td></tr>";
         return str;

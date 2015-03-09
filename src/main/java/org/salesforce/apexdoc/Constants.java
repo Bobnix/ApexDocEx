@@ -2,7 +2,7 @@ package org.salesforce.apexdoc;
 
 public class Constants {
         
-    public static final String HEADER_OPEN = "<html><head>" + 
+    private static final String HEADER_OPEN = "<html><head>" + 
         "<script type='text/javascript' src='https://code.jquery.com/jquery-1.11.1.js'></script>" +
         "<script type='text/javascript' src='CollapsibleList.js'></script>" +                                                                
         "<script type='text/javascript' src='ApexDoc.js'></script>" +                                                                
@@ -10,7 +10,7 @@ public class Constants {
         "</head>" +
         "<body>";
     
-    public static final String HEADER_CLOSE =                                                                               
+    private static final String HEADER_CLOSE =                                                                               
         "</td>" +
         "</tr>" +
         "</table>" +
@@ -22,7 +22,7 @@ public class Constants {
     
     public static final String ROOT_DIRECTORY = "ApexDocumentation";
     public static final String DEFAULT_HOME_CONTENTS = "<h1>Project Home</h2>";
-    public static final String PROJECT_DETAIL = 
+    private static final String PROJECT_DETAIL = 
         "<div class='topsection'>" +
         "<table>" +
         "<tr><td>" +

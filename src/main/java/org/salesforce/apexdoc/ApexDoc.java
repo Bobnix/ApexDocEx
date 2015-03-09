@@ -21,7 +21,7 @@ import org.salesforce.apexdoc.model.PropertyModel;
 public class ApexDoc {
 
     private static FileManager fm;
-    public static String[] rgstrScope = {"global","public","webService"};
+    private static String[] rgstrScope = {"global","public","webService"};
     private static String[] rgstrArgs;
 
     public ApexDoc() {
@@ -86,7 +86,7 @@ public class ApexDoc {
         }
 
         // find all the files to parse
-        fm = new FileManager(targetDirectory);
+        fm = new FileManager(targetDirectory, rgstrScope);
         ArrayList<File> files = fm.getFiles(sourceDirectory);
         ArrayList<ClassModel> cModels = new ArrayList<ClassModel>();
 
@@ -525,40 +525,6 @@ public class ApexDoc {
                 continue;
             }
         }
-    }
-
-    /*************************************************************************
-     * strPrevWord
-     * 
-     * @param str
-     *            - string to search
-     * @param iSearch
-     *            - where to start searching backwards from
-     * @return - the previous word, or null if none found.
-     */
-    public static String strPrevWord(String str, int iSearch) {
-        if (str == null)
-            return null;
-        if (iSearch >= str.length())
-            return null;
-
-        int iStart;
-        int iEnd;
-        for (iStart = iSearch - 1, iEnd = 0; iStart >= 0; iStart--) {
-            if (iEnd == 0) {
-                if (str.charAt(iStart) == ' ')
-                    continue;
-                iEnd = iStart + 1;
-            } else if (str.charAt(iStart) == ' ') {
-                iStart++;
-                break;
-            }
-        }
-
-        if (iStart == -1)
-            return null;
-        else
-            return str.substring(iStart, iEnd);
     }
 
     /*************************************************************************

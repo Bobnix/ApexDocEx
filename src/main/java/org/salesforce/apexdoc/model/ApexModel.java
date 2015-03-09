@@ -3,6 +3,15 @@ package org.salesforce.apexdoc.model;
 import org.salesforce.apexdoc.ApexDoc;
 
 public class ApexModel {
+
+    private String nameLine;
+    private int inameLine;
+    private String description;
+    private String author;
+    private String date;
+    private String returns;
+    private String scope;
+    
     public String getNameLine() {
         return nameLine;
     }
@@ -65,13 +74,5 @@ public class ApexModel {
                 scope = str;
         }
     }
-
-    private String nameLine;
-    private int inameLine;
-    private String description;
-    private String author;
-    private String date;
-    private String returns;
-    private String scope;
 
 }
