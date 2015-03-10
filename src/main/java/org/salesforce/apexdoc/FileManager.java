@@ -2,10 +2,10 @@ package org.salesforce.apexdoc;
 
 import java.io.BufferedReader;
 import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -29,8 +29,6 @@ public class FileManager {
     public static final String ROOT_DIRECTORY = "ApexDocumentation";
     public static final String DEFAULT_HOME_CONTENTS = "<h1>Project Home</h1>";
 	
-    private FileOutputStream fos;
-    private DataOutputStream dos;
     private String path;
     private StringBuffer infoMessages;
     private String[] rgstrScope;
@@ -39,7 +37,7 @@ public class FileManager {
         infoMessages = new StringBuffer();
     }
 
-    private static String escapeHTML(String s) {
+    private String escapeHTML(String s) {
         StringBuilder out = new StringBuilder(Math.max(16, s.length()));
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);
@@ -69,22 +67,20 @@ public class FileManager {
     private boolean createHTML(TreeMap<String, String> mapFNameToContent, IProgressMonitor monitor) {
         try {
             if (path.endsWith("/") || path.endsWith("\\")) {
-                path += ROOT_DIRECTORY; // + "/" + fileName + ".html";
+                path += ROOT_DIRECTORY; 
             } else {
-                path += "/" + ROOT_DIRECTORY; // + "/" + fileName + ".html";
+                path += File.separator + ROOT_DIRECTORY; 
             }
 
             (new File(path)).mkdirs();
 
             for (String fileName : mapFNameToContent.keySet()) {
                 String contents = mapFNameToContent.get(fileName);
-                fileName = path + "/" + fileName + ".html";
+                fileName = path + File.separator + fileName + ".html";
                 File file = new File(fileName);
-                fos = new FileOutputStream(file);
-                dos = new DataOutputStream(fos);
-                dos.writeBytes(contents);
-                dos.close();
-                fos.close();
+                FileWriter writer = new FileWriter(file);
+                writer.write(contents);
+                writer.close();
                 infoMessages.append(fileName + " Processed...\n");
                 System.out.println(fileName + " Processed...");
                 if (monitor != null)
@@ -369,7 +365,7 @@ public class FileManager {
         return "";
     }
     
-    private static String getPageWrapper(String projectDetail, String content) {
+    private String getPageWrapper(String projectDetail, String content) {
     	Velocity.setProperty(RuntimeConstants.RESOURCE_LOADER, "classpath"); 
         Velocity.setProperty("classpath.resource.loader.class", ClasspathResourceLoader.class.getName());
         Velocity.init();

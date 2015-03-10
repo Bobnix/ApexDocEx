@@ -9,6 +9,9 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Stack;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
@@ -354,107 +357,70 @@ public class ApexDoc {
     private static void fillPropertyModel(PropertyModel propertyModel, String name, ArrayList<String> lstComments,
             int iLine) {
         propertyModel.setNameLine(name, iLine);
-        boolean inDescription = false;
-        int i = 0;
-        for (String comment : lstComments) {
-        	i++;
-            comment = comment.trim();
-            int idxStart = comment.toLowerCase().indexOf("@description");
-            if (idxStart != -1 || i == 1) {
-            	if (idxStart != -1 && comment.length() > idxStart + 13)
-            		propertyModel.setDescription(comment.substring(idxStart + 13).trim());
-            	else{
-                	Pattern p = Pattern.compile("\\s");
-                	Matcher m = p.matcher(comment);
-                	if (m.find()) {
-                		propertyModel.setDescription(comment.substring(m.start()).trim());
-                	}
-                }
-                inDescription = true;
-                continue;
-            }
+        Map<String, List<String>> tokenValues = tokenizeDocBlock(lstComments);
 
-            // handle multiple lines for description.
-            if (inDescription) {
-                int j;
-                for (j = 0; j < comment.length(); j++) {
-                    char ch = comment.charAt(j);
-                    if (ch != '*' && ch != ' ')
-                        break;
-                }
-                if (j < comment.length()) {
-                    propertyModel.setDescription(propertyModel.getDescription() + ' ' + comment.substring(j));
-                }
-                continue;
-            }
+        if(tokenValues.containsKey("@description")){
+        	propertyModel.setDescription(tokenValues.get("@description").get(0));
         }
     }
-
+    
     private static void fillMethodModel(MethodModel mModel, String name, ArrayList<String> lstComments, int iLine) {
         mModel.setNameLine(name, iLine);
-        boolean inDescription = false;
-        int i = 0;
-        for (String comment : lstComments) {
-        	i++;
-            comment = comment.trim();
+        Map<String, List<String>> tokenValues = tokenizeDocBlock(lstComments);
 
-            int idxStart = comment.toLowerCase().indexOf("@author");
-            if (idxStart != -1) {
-                mModel.setAuthor(comment.substring(idxStart + 8).trim());
-                inDescription = false;
-                continue;
-            }
-
-            idxStart = comment.toLowerCase().indexOf("@date");
-            if (idxStart != -1) {
-                mModel.setDate(comment.substring(idxStart + 5).trim());
-                inDescription = false;
-                continue;
-            }
-
-            idxStart = comment.toLowerCase().indexOf("@return");
-            if (idxStart != -1) {
-                mModel.setReturns(comment.substring(idxStart + 7).trim());
-                inDescription = false;
-                continue;
-            }
-
-            idxStart = comment.toLowerCase().indexOf("@param");
-            if (idxStart != -1) {
-                mModel.getParams().add(comment.substring(idxStart + 6).trim());
-                inDescription = false;
-                continue;
-            }
-            
-            idxStart = comment.toLowerCase().indexOf("@description");
-            if (idxStart != -1 || i == 1) {
-                if (idxStart != -1 && comment.length() >= idxStart + 12)
-                    mModel.setDescription(comment.substring(idxStart + 12).trim());
-                else{
-                	Pattern p = Pattern.compile("\\s");
-                	Matcher m = p.matcher(comment);
-                	if (m.find()) {
-                		mModel.setDescription(comment.substring(m.start()).trim());
-                	}
-                }
-                inDescription = true;
-                continue;
-            }
-
-            // handle multiple lines for description.
-            if (inDescription) {
-                int j;
-                for (j = 0; j < comment.length(); j++) {
-                    char ch = comment.charAt(j);
-                    if (ch != '*' && ch != ' ')
-                        break;
-                }
-                if (j < comment.length()) {
-                    mModel.setDescription(mModel.getDescription() + ' ' + comment.substring(j));
-                }
-                continue;
-            }
+        if(tokenValues.containsKey("@description")){
+        	mModel.setDescription(tokenValues.get("@description").get(0));
         }
+        if(tokenValues.containsKey("@author")){
+        	mModel.setAuthor(tokenValues.get("@author").get(0));
+        }
+        if(tokenValues.containsKey("@date")){
+        	mModel.setDate(tokenValues.get("@date").get(0));
+        }
+        if(tokenValues.containsKey("@return")){
+        	mModel.setReturns(tokenValues.get("@return").get(0));
+        }
+        if(tokenValues.containsKey("@param")){
+        	mModel.setParams(tokenValues.get("@param"));
+        }
+    }
+    
+    private static Map<String, List<String>> tokenizeDocBlock(List<String> docBlock){
+    	Map<String, List<String>> tokenValues = new HashMap<String, List<String>>();
+        String lastToken = null;
+        String lastTokenValue = null;
+        Pattern p = Pattern.compile("(@[\\w]*)(.*)");
+    	
+        for (String comment : docBlock) {
+        	if(comment.contains("/*") || comment.contains("*/")){
+        		continue;
+        	}
+            comment = comment.trim().replaceAll("^\\s?\\*\\s?", "");
+            
+            Matcher m = p.matcher(comment);
+        	if (m.find()) {
+        		if(lastTokenValue != null){
+        			tokenValues.get(lastToken).add(lastTokenValue);
+        		}
+        		
+        		lastToken = m.group(1);
+        		if(!tokenValues.containsKey(lastToken)){
+        			tokenValues.put(lastToken, new ArrayList<String>());
+        		}
+        		lastTokenValue = m.group(2);
+        	} else if(lastToken == null){
+        		lastToken = "@description";
+        		lastTokenValue = comment;
+        		tokenValues.put(lastToken, new ArrayList<String>());
+        	} else {
+        		lastTokenValue += comment;
+        	}
+            
+        }
+        if(lastTokenValue != null){
+			tokenValues.get(lastToken).add(lastTokenValue);
+		}
+        return tokenValues;
     }
 
     private static void fillClassModel(ClassModel cModelParent, ClassModel cModel, String name,
@@ -462,68 +428,23 @@ public class ApexDoc {
         cModel.setNameLine(name, iLine);
         if (name.toLowerCase().contains(" interface "))
             cModel.setIsInterface(true);
-        boolean inDescription = false;
-        int i = 0;
-        for (String comment : lstComments) {
-        	i++;
-            comment = comment.trim();
+        
+        Map<String, List<String>> tokenValues = tokenizeDocBlock(lstComments);
 
-            int idxStart = comment.toLowerCase().indexOf("@author");
-            if (idxStart != -1) {
-                cModel.setAuthor(comment.substring(idxStart + 7).trim());
-                inDescription = false;
-                continue;
-            }
-
-            idxStart = comment.toLowerCase().indexOf("@date");
-            if (idxStart != -1) {
-                cModel.setDate(comment.substring(idxStart + 5).trim());
-                inDescription = false;
-                continue;
-            }
-
-            idxStart = comment.toLowerCase().indexOf("@group "); // needed to include space to not match group-content.
-            if (idxStart != -1) {
-                cModel.setClassGroup(comment.substring(idxStart + 6).trim());
-                inDescription = false;
-                continue;
-            }
-
-            idxStart = comment.toLowerCase().indexOf("@group-content");
-            if (idxStart != -1) {
-                cModel.setClassGroupContent(comment.substring(idxStart + 14).trim());
-                inDescription = false;
-                continue;
-            }
-            
-            idxStart = comment.toLowerCase().indexOf("@description");
-            if (idxStart != -1 || i == 1) {
-            	if (idxStart != -1 && comment.length() > idxStart + 13)
-            		cModel.setDescription(comment.substring(idxStart + 12).trim());
-            	else{
-                	Pattern p = Pattern.compile("\\s");
-                	Matcher m = p.matcher(comment);
-                	if (m.find()) {
-                		cModel.setDescription(comment.substring(m.start()).trim());
-                	}
-                }
-                inDescription = true;
-                continue;
-            }
-
-            // handle multiple lines for description.
-            if (inDescription) {
-                int j;
-                for (j = 0; j < comment.length(); j++) {
-                    char ch = comment.charAt(j);
-                    if (ch != '*' && ch != ' ')
-                        break;
-                }
-                if (j < comment.length()) {
-                    cModel.setDescription(cModel.getDescription() + ' ' + comment.substring(j));
-                }
-                continue;
-            }
+        if(tokenValues.containsKey("@description")){
+        	cModel.setDescription(tokenValues.get("@description").get(0));
+        }
+        if(tokenValues.containsKey("@author")){
+        	cModel.setAuthor(tokenValues.get("@author").get(0));
+        }
+        if(tokenValues.containsKey("@date")){
+        	cModel.setDate(tokenValues.get("@date").get(0));
+        }
+        if(tokenValues.containsKey("@group")){
+        	cModel.setClassGroup(tokenValues.get("@group").get(0));
+        }
+        if(tokenValues.containsKey("@group-content")){
+        	cModel.setClassGroupContent(tokenValues.get("@group-content").get(0));
         }
     }
 
