@@ -1,10 +1,7 @@
 package org.salesforce.apexdoc.model;
 
 
-public class PropertyModel extends ApexModel {
-
-    public PropertyModel() {
-    }
+public class PropertyModel extends ApexModel implements Comparable<PropertyModel> {
 
     public void setNameLine(String nameLine, int iLine) {
         if (nameLine != null) {
@@ -32,4 +29,9 @@ public class PropertyModel extends ApexModel {
         }
         return "";
     }
+
+	@Override
+	public int compareTo(PropertyModel otherModel) {
+		return (this.getPropertyName().toLowerCase().compareTo(otherModel.getPropertyName().toLowerCase()));
+	}
 }

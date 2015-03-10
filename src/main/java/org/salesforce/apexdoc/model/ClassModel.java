@@ -4,9 +4,18 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.TreeMap;
 import java.util.Collections;
-import java.util.Comparator;
 
-public class ClassModel extends ApexModel {
+import org.salesforce.apexdoc.comparator.MethodModelComparator;
+
+public class ClassModel extends ApexModel implements Comparable<ClassModel> {
+
+    private List<MethodModel> methods;
+    private List<PropertyModel> properties;
+    private String strClassGroup;
+    private String strClassGroupContent;
+    private ClassModel cmodelParent;
+    private List<ClassModel> childClasses;
+    private boolean isInterface;
 
     public ClassModel(ClassModel cmodelParent) {
         methods = new ArrayList<MethodModel>();
@@ -15,51 +24,27 @@ public class ClassModel extends ApexModel {
         childClasses = new ArrayList<ClassModel>();
     }
 
-    private ArrayList<MethodModel> methods;
-    private ArrayList<PropertyModel> properties;
-    private String strClassGroup;
-    private String strClassGroupContent;
-    private ClassModel cmodelParent;
-    private ArrayList<ClassModel> childClasses;
-    private boolean isInterface;
-
-    public ArrayList<PropertyModel> getProperties() {
+    public List<PropertyModel> getProperties() {
         return properties;
     }
 
-    public ArrayList<PropertyModel> getPropertiesSorted() {
-        TreeMap<String, PropertyModel> tm = new TreeMap<String, PropertyModel>();
-        for (PropertyModel prop : properties)
-            tm.put(prop.getPropertyName().toLowerCase(), prop);
-        return new ArrayList<PropertyModel>(tm.values());
+    public List<PropertyModel> getPropertiesSorted() {
+        List<PropertyModel> sorted = new ArrayList<PropertyModel>(properties);
+        Collections.sort(sorted);
+        return sorted;
     }
 
-    public void setProperties(ArrayList<PropertyModel> properties) {
+    public void setProperties(List<PropertyModel> properties) {
         this.properties = properties;
     }
 
-    public ArrayList<MethodModel> getMethods() {
+    public List<MethodModel> getMethods() {
         return methods;
     }
 
     public ArrayList<MethodModel> getMethodsSorted() {
-        @SuppressWarnings("unchecked")
-		List<MethodModel> sorted = (List<MethodModel>)methods.clone();
-        Collections.sort(sorted, new Comparator<MethodModel>(){
-            @Override
-            public int compare(MethodModel o1, MethodModel o2) {
-                String methodName1 = o1.getMethodName();
-                String methodName2 = o2.getMethodName();
-                String className = getClassName();
-                
-                if(methodName1.equals(className)){
-                    return Integer.MIN_VALUE;
-                } else if(methodName2.equals(className)){
-                    return Integer.MAX_VALUE;
-                }
-                return (methodName1.toLowerCase().compareTo(methodName2.toLowerCase()));
-            }
-        });
+        List<MethodModel> sorted = new ArrayList<MethodModel>(methods);
+        Collections.sort(sorted, new MethodModelComparator(getClassName()));
         return new ArrayList<MethodModel>(sorted);
     }
 
@@ -140,4 +125,9 @@ public class ClassModel extends ApexModel {
     public void setIsInterface(boolean isInterface) {
         this.isInterface = isInterface;
     }
+
+	@Override
+	public int compareTo(ClassModel otherModel) {
+		return (this.getClassName().toLowerCase().compareTo(otherModel.getClassName().toLowerCase()));
+	}
 }
