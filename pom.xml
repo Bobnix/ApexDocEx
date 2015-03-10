@@ -30,10 +30,10 @@
   </dependencies>
   
   <build>
-    <sourceDirectory>src/main</sourceDirectory>
+    <sourceDirectory>src</sourceDirectory>
     <resources>
       <resource>
-        <directory>src/main</directory>
+        <directory>src</directory>
         <excludes>
           <exclude>**/*.java</exclude>
         </excludes>

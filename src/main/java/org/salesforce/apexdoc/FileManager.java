@@ -15,22 +15,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
-import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 import org.apache.velocity.tools.generic.EscapeTool;
-import org.salesforce.apexdoc.model.ApexModel;
 import org.salesforce.apexdoc.model.ClassModel;
-import org.salesforce.apexdoc.model.MethodModel;
-import org.salesforce.apexdoc.model.PropertyModel;
 
 public class FileManager {
+	    
+    public static final String ROOT_DIRECTORY = "ApexDocumentation";
+    public static final String DEFAULT_HOME_CONTENTS = "<h1>Project Home</h1>";
+	
     private FileOutputStream fos;
     private DataOutputStream dos;
     private String path;
@@ -71,9 +69,9 @@ public class FileManager {
     private boolean createHTML(TreeMap<String, String> mapFNameToContent, IProgressMonitor monitor) {
         try {
             if (path.endsWith("/") || path.endsWith("\\")) {
-                path += Constants.ROOT_DIRECTORY; // + "/" + fileName + ".html";
+                path += ROOT_DIRECTORY; // + "/" + fileName + ".html";
             } else {
-                path += "/" + Constants.ROOT_DIRECTORY; // + "/" + fileName + ".html";
+                path += "/" + ROOT_DIRECTORY; // + "/" + fileName + ".html";
             }
 
             (new File(path)).mkdirs();
@@ -100,11 +98,6 @@ public class FileManager {
         }
 
         return false;
-    }
-
-    private String strLinkfromModel(ApexModel model, String strClassName, String hostedSourceURL) {
-        return "<a target='_blank' class='hostedSourceLink' href='" + hostedSourceURL + strClassName + ".cls#L"
-                + model.getInameLine() + "'>";
     }
 
     private String strHTMLScopingPanel() {
@@ -138,11 +131,11 @@ public class FileManager {
 
         if (homeContents != null && homeContents.trim().length() > 0) {
             homeContents = links + "<td class='contentTD'>" + "<h2 class='section-title'>Home</h2>" + homeContents + "</td>";
-            homeContents = Constants.getHeader(projectDetail) + homeContents + Constants.FOOTER;
+            homeContents = getPageWrapper(projectDetail, homeContents);
         } else {
-            homeContents = Constants.DEFAULT_HOME_CONTENTS;
+            homeContents = DEFAULT_HOME_CONTENTS;
             homeContents = links + "<td class='contentTD'>" + "<h2 class='section-title'>Home</h2>" + homeContents + "</td>";
-            homeContents = Constants.getHeader(projectDetail) + homeContents + Constants.FOOTER;
+            homeContents = getPageWrapper(projectDetail, homeContents);
         }
 
         String fileName = "";
@@ -171,7 +164,7 @@ public class FileManager {
             }
             contents += "</div>";
 
-            contents = Constants.getHeader(projectDetail) + contents + Constants.FOOTER;
+            contents = getPageWrapper(projectDetail, contents);
             mapFNameToContent.put(fileName, contents);
             if (monitor != null)
                 monitor.worked(1);
@@ -217,10 +210,9 @@ public class FileManager {
             if (cg.getContentSource() != null) {
                 String cgContent = parseHTMLFile(cg.getContentSource());
                 if (cgContent != "") {
-                    String strHtml = Constants.getHeader(projectDetail) + links + "<td class='contentTD'>" +
+                    String strHtml = getPageWrapper(projectDetail, links + "<td class='contentTD'>" +
                             "<h2 class='section-title'>" +
-                            escapeHTML(cg.getName()) + "</h2>" + cgContent + "</td>";
-                    strHtml += Constants.FOOTER;
+                            escapeHTML(cg.getName()) + "</h2>" + cgContent + "</td>");
                     mapFNameToContent.put(cg.getContentFilename(), strHtml);
                     if (monitor != null)
                         monitor.worked(1);
@@ -375,6 +367,25 @@ public class FileManager {
             }
         }
         return "";
+    }
+    
+    private static String getPageWrapper(String projectDetail, String content) {
+    	Velocity.setProperty(RuntimeConstants.RESOURCE_LOADER, "classpath"); 
+        Velocity.setProperty("classpath.resource.loader.class", ClasspathResourceLoader.class.getName());
+        Velocity.init();
+ 
+        // Getting the Template
+        Template temp = Velocity.getTemplate("main/resource/templates/pageWrapper.vm");
+ 
+        // Create a context and add data to the template placeholder
+        VelocityContext context = new VelocityContext();
+        context.put("projectDetail", projectDetail);
+        context.put("content", content);
+ 
+        // Fetch template into a StringWriter
+        StringWriter writer = new StringWriter();
+        temp.merge( context, writer );
+        return writer.toString();
     }
 
 }
