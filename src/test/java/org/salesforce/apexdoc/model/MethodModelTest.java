@@ -66,8 +66,7 @@ public class MethodModelTest {
 		testData.put("@author", Arrays.asList("Test Person"));
 		testData.put("@date", Arrays.asList("01/01/01"));
 		testData.put("@return", Arrays.asList("Return value"));
-		testData.put("@param", Arrays.asList("Param 1"));
-		testData.put("@param", Arrays.asList("Param 2"));
+		testData.put("@param", Arrays.asList("Param 1", "Param 2"));
 		model.mergeDocBlockData(testData);
 
 		Assert.assertEquals(model.getDescription(), "Test description");
