@@ -75,7 +75,6 @@ public class MethodModelTest {
 		Assert.assertEquals(model.getReturns(), "Return value");
 		Assert.assertTrue(model.getParams().contains("Param 1"));
 		Assert.assertTrue(model.getParams().contains("Param 2"));
-		
 	}
 
 }

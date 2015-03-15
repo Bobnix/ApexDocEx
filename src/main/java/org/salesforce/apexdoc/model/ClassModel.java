@@ -57,7 +57,7 @@ public class ClassModel extends ApexModel implements Comparable<ClassModel> {
         return new ArrayList<MethodModel>(sorted);
     }
 
-    public void setMethods(ArrayList<MethodModel> methods) {
+    public void setMethods(List<MethodModel> methods) {
         this.methods = methods;
     }
 
@@ -73,6 +73,7 @@ public class ClassModel extends ApexModel implements Comparable<ClassModel> {
     }
 
     public String getClassName() {
+        //TODO: This method needs a space after the class name. Clean this so it is more flexible
         String nameLine = getNameLine();
         String strParent = cmodelParent == null ? "" : cmodelParent.getClassName() + ".";
         if (nameLine != null)
