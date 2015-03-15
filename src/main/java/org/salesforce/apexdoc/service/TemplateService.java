@@ -4,7 +4,6 @@ import java.io.StringWriter;
 
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.Velocity;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
@@ -15,7 +14,7 @@ public class TemplateService {
 	private VelocityEngine velocity;
 	
 	public TemplateService(){
-		velocity = new VelocityEngine();
+		velocity = getNewVelocityEngine();
 		velocity.setProperty(RuntimeConstants.RESOURCE_LOADER, "classpath"); 
 		velocity.setProperty("classpath.resource.loader.class", ClasspathResourceLoader.class.getName());
 		velocity.init();
@@ -44,5 +43,9 @@ public class TemplateService {
         
         return writer.toString();
 	}
+
+    protected VelocityEngine getNewVelocityEngine(){
+        return new VelocityEngine();
+    }
 	
 }

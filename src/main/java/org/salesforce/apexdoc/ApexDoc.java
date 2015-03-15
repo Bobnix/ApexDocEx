@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -69,7 +68,7 @@ public class ApexDoc {
         // find all the files to parse
         fm = new FileManager(targetDirectory, rgstrScope);
         ArrayList<File> files = fm.getFiles(sourceDirectory);
-        ArrayList<ClassModel> cModels = new ArrayList<ClassModel>();
+        ArrayList<ClassModel> cModels = new ArrayList<>();
 
         // parse each file, creating a class model for it
         for (File fromFile : files) {
@@ -111,7 +110,7 @@ public class ApexDoc {
 
     private TreeMap<String, ClassGroup> createMapGroupNameToClassGroup(ArrayList<ClassModel> cModels,
             String sourceDirectory) {
-        TreeMap<String, ClassGroup> map = new TreeMap<String, ClassGroup>();
+        TreeMap<String, ClassGroup> map = new TreeMap<>();
         for (ClassModel cmodel : cModels) {
             String strGroup = cmodel.getClassGroup();
             String strGroupContent = cmodel.getClassGroupContent();
@@ -139,9 +138,6 @@ public class ApexDoc {
 	            ClassModel parsedClass = getClassParsingService().parseFileContents(br);
 	            in.close();
 	            return parsedClass;
-			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -152,9 +148,9 @@ public class ApexDoc {
 
     public static String strContainsScope(String str) {
         str = str.toLowerCase();
-        for (int i = 0; i < rgstrScope.length; i++) {
-            if (str.toLowerCase().contains(rgstrScope[i].toLowerCase() + " ")) {
-                return rgstrScope[i];
+        for (String scope : rgstrScope) {
+            if (str.toLowerCase().contains(scope.toLowerCase() + " ")) {
+                return scope;
             }
         }
         return null;

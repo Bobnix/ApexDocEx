@@ -9,6 +9,7 @@ import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang.StringUtils;
 import org.salesforce.apexdoc.ApexDoc;
 import org.salesforce.apexdoc.model.ApexModel;
 import org.salesforce.apexdoc.model.ClassModel;
@@ -23,10 +24,10 @@ public class ClassParsingService {
             boolean commentsStarted = false;
             boolean docBlockStarted = false;
             int nestedCurlyBraceDepth = 0;
-            ArrayList<String> lstComments = new ArrayList<String>();
+            ArrayList<String> lstComments = new ArrayList<>();
             ClassModel cModel = null;
             ClassModel cModelParent = null;
-            Stack<ClassModel> cModels = new Stack<ClassModel>();
+            Stack<ClassModel> cModels = new Stack<>();
 
             // DH: Consider using java.io.StreamTokenizer to read the file a
             // token at a time?
@@ -93,8 +94,8 @@ public class ClassParsingService {
                 }
 
                 // keep track of our nesting so we know which class we are in
-                int openCurlies = countChars(strLine, '{');
-                int closeCurlies = countChars(strLine, '}');
+                int openCurlies = StringUtils.countMatches(strLine, "{");
+                int closeCurlies = StringUtils.countMatches(strLine, "}");
                 nestedCurlyBraceDepth += openCurlies;
                 nestedCurlyBraceDepth -= closeCurlies;
 
@@ -176,7 +177,6 @@ public class ClassParsingService {
                 fillApexModel(propertyModel, strLine, lstComments, iLine);
                 cModel.getProperties().add(propertyModel);
                 lstComments.clear();
-                continue;
 
             }
 
@@ -198,7 +198,7 @@ public class ClassParsingService {
     }
     
     private Map<String, List<String>> tokenizeDocBlock(List<String> docBlock){
-    	Map<String, List<String>> tokenValues = new HashMap<String, List<String>>();
+    	Map<String, List<String>> tokenValues = new HashMap<>();
         String lastToken = null;
         String lastTokenValue = null;
         Pattern p = Pattern.compile("(@[\\w]*)(.*)");
@@ -233,22 +233,6 @@ public class ClassParsingService {
 			tokenValues.get(lastToken).add(lastTokenValue);
 		}
         return tokenValues;
-    }
-
-    /*************************************************************************
-     * @description Count the number of occurrences of character in the string
-     * @param str
-     * @param ch
-     * @return int
-     */
-    private int countChars(String str, char ch) {
-        int count = 0;
-        for (int i = 0; i < str.length(); ++i) {
-            if (str.charAt(i) == ch) {
-                ++count;
-            }
-        }
-        return count;
     }
 
 }

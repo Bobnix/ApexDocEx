@@ -1,5 +1,6 @@
 ApexDocEx
 =======
+[![Build Status](https://travis-ci.org/Bobnix/ApexDocEx.svg?branch=master)](https://travis-ci.org/Bobnix/ApexDocEx)
 
 ApexDocEx is a java app that you can use to document your Salesforce Apex classes.  You tell ApexDoc where your class files are, and it will generate a set of static HTML pages that fully document each class, including its properties and methods.  Each static HTML page will include an expandable menu on its left hand side, that shows a 2-level tree structure of all of your classes.  Command line parameters allow you to control many aspects of ApexDoc, such as providing your own banner HTML for the pages to use.
 

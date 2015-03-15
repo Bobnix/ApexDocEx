@@ -1,14 +1,6 @@
 package org.salesforce.apexdoc.service;
 
-import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -79,7 +71,7 @@ public class FileManager {
                 FileWriter writer = new FileWriter(file);
                 writer.write(contents);
                 writer.close();
-                infoMessages.append(fileName + " Processed...\n");
+                infoMessages.append(fileName).append(" Processed...\n");
                 System.out.println(fileName + " Processed...");
             }
             copy(path);
@@ -96,23 +88,22 @@ public class FileManager {
         String str = "<tr><td colspan='2' style='text-align: center;' >";
         str += "Show: ";
 
-        for (int i = 0; i < rgstrScope.length; i++) {
-            str += "<input type='checkbox' checked='checked' id='cbx" + rgstrScope[i] +
-                    "' onclick='ToggleScope(\"" + rgstrScope[i] + "\", this.checked );'>" +
-                    rgstrScope[i] + "</input>&nbsp;&nbsp;";
+        for (String scope : rgstrScope) {
+            str += "<input type='checkbox' checked='checked' id='cbx" + scope +
+                    "' onclick='ToggleScope(\"" + scope + "\", this.checked );'>" +
+                    scope + "</input>&nbsp;&nbsp;";
         }
         str += "</td></tr>";
         return str;
     }
 
     /********************************************************************************************
-     * @description main routine that creates an HTML file for each class specified
+     * main routine that creates an HTML file for each class specified
      * @param mapGroupNameToClassGroup
      * @param cModels
      * @param projectDetail
      * @param homeContents
      * @param hostedSourceURL
-     * @param monitor
      */
     private void makeFile(TreeMap<String, ClassGroup> mapGroupNameToClassGroup, ArrayList<ClassModel> cModels,
             String projectDetail, String homeContents, String hostedSourceURL) {
@@ -131,11 +122,11 @@ public class FileManager {
         }
 
         String fileName = "";
-        TreeMap<String, String> mapFNameToContent = new TreeMap<String, String>();
+        TreeMap<String, String> mapFNameToContent = new TreeMap<>();
         mapFNameToContent.put("index", homeContents);
 
         // create our Class Group content files
-        createClassGroupContent(mapFNameToContent, links, projectDetail, mapGroupNameToClassGroup, cModels);
+        createClassGroupContent(mapFNameToContent, links, projectDetail, mapGroupNameToClassGroup);
 
         for (ClassModel cModel : cModels) {
             String contents = links;
@@ -163,8 +154,7 @@ public class FileManager {
     }
 
     /*********************************************************************************************
-     * @description creates the HTML for the provided class, including its
-     *              property and methods
+     * Creates the HTML for the provided class, including its property and methods
      * @param cModel
      * @param hostedSourceURL
      * @return html string
@@ -181,8 +171,7 @@ public class FileManager {
 
     // create our Class Group content files
     private void createClassGroupContent(TreeMap<String, String> mapFNameToContent, String links, String projectDetail,
-            TreeMap<String, ClassGroup> mapGroupNameToClassGroup,
-            ArrayList<ClassModel> cModels) {
+            TreeMap<String, ClassGroup> mapGroupNameToClassGroup) {
 
         for (String strGroup : mapGroupNameToClassGroup.keySet()) {
             ClassGroup cg = mapGroupNameToClassGroup.get(strGroup);
@@ -199,8 +188,7 @@ public class FileManager {
     }
 
     /**********************************************************************************************************
-     * @description generate the HTML string for the Class Menu to display on
-     *              each page.
+     * Generate the HTML string for the Class Menu to display on each page.
      * @param mapGroupNameToClassGroup
      *            map that holds all the Class names, and their respective Class
      *            Group.
@@ -215,7 +203,7 @@ public class FileManager {
         // add a bucket ClassGroup for all Classes without a ClassGroup specified
         mapGroupNameToClassGroup.put("Miscellaneous", new ClassGroup("Miscellaneous", null));
         
-        Map<String, List<ClassModel>> classesByGroup = new HashMap<String, List<ClassModel>>();
+        Map<String, List<ClassModel>> classesByGroup = new HashMap<>();
         for (ClassModel cModel : cModels) {
         	if (cModel.getNameLine() != null && cModel.getNameLine().trim().length() > 0) { //TODO: Replace with isBlank
 		    	String grp = cModel.getClassGroup() != null?cModel.getClassGroup():"Miscellaneous";
@@ -234,11 +222,9 @@ public class FileManager {
         return getTemplateService().createLinks(context);
     }
 
-    private void docopy(String source, String target) throws Exception {
+    private void doCopy(String source, String target) throws IOException{
 
         InputStream is = this.getClass().getClassLoader().getResourceAsStream("main/resource/"+source);
-        // InputStreamReader isr = new InputStreamReader(is);
-        // BufferedReader reader = new BufferedReader(isr);
         FileOutputStream to = new FileOutputStream(target + "/" + source);
 
         byte[] buffer = new byte[4096];
@@ -253,27 +239,25 @@ public class FileManager {
         is.close();
     }
 
-    private void copy(String toFileName) throws IOException, Exception {
-        docopy("apex_doc_logo.png", toFileName);
-        docopy("ApexDoc.css", toFileName);
-        docopy("ApexDoc.js", toFileName);
-        docopy("CollapsibleList.js", toFileName);
-        docopy("jquery-latest.js", toFileName);
-        docopy("toggle_block_btm.gif", toFileName);
-        docopy("toggle_block_stretch.gif", toFileName);
+    private void copy(String toFileName) throws IOException {
+        doCopy("apex_doc_logo.png", toFileName);
+        doCopy("ApexDoc.css", toFileName);
+        doCopy("ApexDoc.js", toFileName);
+        doCopy("CollapsibleList.js", toFileName);
+        doCopy("jquery-latest.js", toFileName);
+        doCopy("toggle_block_btm.gif", toFileName);
+        doCopy("toggle_block_stretch.gif", toFileName);
 
     }
 
     public ArrayList<File> getFiles(String path) {
         File folder = new File(path);
-        ArrayList<File> listOfFilesToCopy = new ArrayList<File>();
-        if (folder != null) {
-            File[] listOfFiles = folder.listFiles();
-            if (listOfFiles != null && listOfFiles.length > 0) {
-                for (int i = 0; i < listOfFiles.length; i++) {
-                    if (listOfFiles[i].isFile()) {
-                        listOfFilesToCopy.add(listOfFiles[i]);
-                    }
+        ArrayList<File> listOfFilesToCopy = new ArrayList<>();
+        File[] listOfFiles = folder.listFiles();
+        if (listOfFiles != null && listOfFiles.length > 0) {
+            for (File file : listOfFiles) {
+                if (file.isFile()) {
+                    listOfFilesToCopy.add(file);
                 }
             }
         }
@@ -300,11 +284,11 @@ public class FileManager {
     public String parseHTMLFile(String filePath) {
 
         String contents = (parseFile(filePath)).trim();
-        if (contents != null && contents.length() > 0) {
+        if (contents.length() > 0) {
             int startIndex = contents.indexOf("<body>");
             int endIndex = contents.indexOf("</body>");
             if (startIndex != -1) {
-                if (contents.indexOf("</body>") != -1) {
+                if (endIndex != -1) {
                     contents = contents.substring(startIndex, endIndex);
                     return contents;
                 }
