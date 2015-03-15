@@ -4,14 +4,14 @@
 			<nav role='navigation'>
 				<ul id='mynavbar'>
 					<li id='idMenuindex'>
-						<a href='.' onclick=\"gotomenu('index.html', event);return false;\" class='nav-item'>Home</a>
+						<a href='.' onclick="gotomenu('index.html', event);return false;" class='nav-item'>Home</a>
 					</li>
 					#foreach ($group in $groups.entrySet())
 					    <li class='header' id='idMenu$group.value.ContentFilename'>
 					    	#if (!!$group.value.ContentFilename)
-					    		<a class='nav-item nav-section-title' href='.' onclick="gotomenu('${group.value.ContentFilename}.html', event);return false;" class='nav-item'>$group.key<span class='caret'></span></a>
+					    		<a class='nav-item nav-section-title' href='.' onclick="gotomenu('${group.value.ContentFilename}.html', event);return false;">$group.key<span class='caret'></span></a>
 					    	#else
-					    		<a class='nav-item nav-section-title' href='.' class='nav-item'>$group.key<span class='caret'></span></a>
+					    		<a class='nav-item nav-section-title' href='.'>$group.key<span class='caret'></span></a>
 					    	#end
 					    </li>
 						<ul>

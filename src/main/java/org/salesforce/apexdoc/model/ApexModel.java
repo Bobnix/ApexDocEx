@@ -2,7 +2,7 @@ package org.salesforce.apexdoc.model;
 
 import org.salesforce.apexdoc.ApexDoc;
 
-public class ApexModel {
+abstract class ApexModel {
 
     private String nameLine;
     private int inameLine;

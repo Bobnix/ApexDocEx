@@ -49,7 +49,7 @@
 		</ul>
 		#foreach ($method in $class.methodsSorted)
 			<div class='methodscope$method.getScope' >
-				<h2 class='methodHeader'><a id='$method.methodName'/>$method.methodName</h2>
+				<h2 class='methodHeader'><a id='$method.methodName'>$method.methodName</a></h2>
 				<div class='methodSignature'>
 					<a target='_blank' class='hostedSourceLink' href='${hostedSourceURL}${class.topmostClassName}.cls#L$method.inameLine'>$esc.html($method.nameLine)</a>
 				</div>

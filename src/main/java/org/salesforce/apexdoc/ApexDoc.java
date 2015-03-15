@@ -4,10 +4,7 @@ import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.InputStreamReader;
-import java.io.PrintStream;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,30 +14,22 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.salesforce.apexdoc.model.ClassGroup;
 import org.salesforce.apexdoc.model.ClassModel;
 import org.salesforce.apexdoc.model.MethodModel;
 import org.salesforce.apexdoc.model.PropertyModel;
+import org.salesforce.apexdoc.service.FileManager;
 
 public class ApexDoc {
 
     private static FileManager fm;
     private static String[] rgstrScope = {"global","public","webService"};
-    private static String[] rgstrArgs;
-
-    public ApexDoc() {
-        try {
-            File file = new File("apex_doc_log.txt");
-            FileOutputStream fos = new FileOutputStream(file);
-            PrintStream ps = new PrintStream(fos);
-            System.setOut(ps);
-        } catch (Exception ex) {
-        }
-    }
 
     // public entry point when called from the command line.
     public static void main(String[] args) {
         try {
-            RunApexDoc(args, null);
+        	ApexDoc prog = new ApexDoc();
+        	prog.RunApexDoc(args);
         } catch (Exception ex) {
             ex.printStackTrace();
             System.out.println(ex.getMessage());
@@ -49,15 +38,9 @@ public class ApexDoc {
         }
     }
 
-    // public entry point when called from the Eclipse PlugIn.
-    // assumes PlugIn previously sets rgstrArgs before calling run.
-    public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-        RunApexDoc(rgstrArgs, monitor);
-    }
-
     // public main routine which is used by both command line invocation and
     // Eclipse PlugIn invocation
-    public static void RunApexDoc(String[] args, IProgressMonitor monitor) {
+    private void RunApexDoc(String[] args) {
         String sourceDirectory = "";
         String targetDirectory = "";
         String homefilepath = "";
@@ -93,12 +76,6 @@ public class ApexDoc {
         ArrayList<File> files = fm.getFiles(sourceDirectory);
         ArrayList<ClassModel> cModels = new ArrayList<ClassModel>();
 
-        if (monitor != null) {
-            // each file is parsed, html created, written to disk.
-            // but for each class file, there is an xml file we'll ignore.
-            // plus we add 2 for the author file and home file loading.
-            monitor.beginTask("ApexDoc - documenting your Apex Class files.", (files.size() / 2) * 3 + 2);
-        }
         // parse each file, creating a class model for it
         for (File fromFile : files) {
             String fromFileName = fromFile.getAbsolutePath();
@@ -108,8 +85,7 @@ public class ApexDoc {
                     cModels.add(cModel);
                 }
             }
-            if (monitor != null)
-                monitor.worked(1);
+
         }
 
         // create our Groups
@@ -117,16 +93,10 @@ public class ApexDoc {
 
         // load up optional specified file templates
         String projectDetail = fm.parseHTMLFile(authorfilepath);
-        if (monitor != null)
-            monitor.worked(1);
         String homeContents = fm.parseHTMLFile(homefilepath);
-        if (monitor != null)
-            monitor.worked(1);
 
         // create our set of HTML files
-        fm.createDoc(mapGroupNameToClassGroup, cModels, projectDetail, homeContents, hostedSourceURL, monitor);
-        if (monitor != null)
-            monitor.done();
+        fm.createDoc(mapGroupNameToClassGroup, cModels, projectDetail, homeContents, hostedSourceURL);
 
         // we are done!
         System.out.println("ApexDoc has completed!");
@@ -144,7 +114,7 @@ public class ApexDoc {
         System.out.println("<scope> - Optional. Semicolon seperated list of scopes to document.  Defaults to 'global;public'. ");
     }
 
-    private static TreeMap<String, ClassGroup> createMapGroupNameToClassGroup(ArrayList<ClassModel> cModels,
+    private TreeMap<String, ClassGroup> createMapGroupNameToClassGroup(ArrayList<ClassModel> cModels,
             String sourceDirectory) {
         TreeMap<String, ClassGroup> map = new TreeMap<String, ClassGroup>();
         for (ClassModel cmodel : cModels) {
@@ -166,7 +136,7 @@ public class ApexDoc {
         return map;
     }
 
-    private static ClassModel parseFileContents(String filePath) {
+    private ClassModel parseFileContents(String filePath) {
         try {
             FileInputStream fstream = new FileInputStream(filePath);
             // Get the object of DataInputStream
@@ -354,7 +324,7 @@ public class ApexDoc {
         return null;
     }
 
-    private static void fillPropertyModel(PropertyModel propertyModel, String name, ArrayList<String> lstComments,
+    private void fillPropertyModel(PropertyModel propertyModel, String name, ArrayList<String> lstComments,
             int iLine) {
         propertyModel.setNameLine(name, iLine);
         Map<String, List<String>> tokenValues = tokenizeDocBlock(lstComments);
@@ -364,7 +334,7 @@ public class ApexDoc {
         }
     }
     
-    private static void fillMethodModel(MethodModel mModel, String name, ArrayList<String> lstComments, int iLine) {
+    private void fillMethodModel(MethodModel mModel, String name, ArrayList<String> lstComments, int iLine) {
         mModel.setNameLine(name, iLine);
         Map<String, List<String>> tokenValues = tokenizeDocBlock(lstComments);
 
@@ -385,7 +355,7 @@ public class ApexDoc {
         }
     }
     
-    private static Map<String, List<String>> tokenizeDocBlock(List<String> docBlock){
+    private Map<String, List<String>> tokenizeDocBlock(List<String> docBlock){
     	Map<String, List<String>> tokenValues = new HashMap<String, List<String>>();
         String lastToken = null;
         String lastTokenValue = null;
@@ -423,7 +393,7 @@ public class ApexDoc {
         return tokenValues;
     }
 
-    private static void fillClassModel(ClassModel cModelParent, ClassModel cModel, String name,
+    private void fillClassModel(ClassModel cModelParent, ClassModel cModel, String name,
             ArrayList<String> lstComments, int iLine) {
         cModel.setNameLine(name, iLine);
         if (name.toLowerCase().contains(" interface "))
@@ -454,7 +424,7 @@ public class ApexDoc {
      * @param ch
      * @return int
      */
-    private static int countChars(String str, char ch) {
+    private int countChars(String str, char ch) {
         int count = 0;
         for (int i = 0; i < str.length(); ++i) {
             if (str.charAt(i) == ch) {
@@ -463,33 +433,5 @@ public class ApexDoc {
         }
         return count;
     }
-
-    /*
-     * private static void debug(ClassModel cModel){ try{
-     * System.out.println("Class::::::::::::::::::::::::");
-     * if(cModel.getClassName() != null)
-     * System.out.println(cModel.getClassName()); if(cModel.getNameLine() !=
-     * null) System.out.println(cModel.getNameLine());
-     * System.out.println(cModel.getAuthor());
-     * System.out.println(cModel.getDescription());
-     * System.out.println(cModel.getDate());
-     * 
-     * System.out.println("Properties::::::::::::::::::::::::"); for
-     * (PropertyModel property : cModel.getProperties()) {
-     * System.out.println(property.getNameLine());
-     * System.out.println(property.getDescription()); }
-     * 
-     * System.out.println("Methods::::::::::::::::::::::::"); for (MethodModel
-     * method : cModel.getMethods()) {
-     * System.out.println(method.getMethodName());
-     * System.out.println(method.getAuthor());
-     * System.out.println(method.getDescription());
-     * System.out.println(method.getDate()); for (String param :
-     * method.getParams()) { System.out.println(param); }
-     * 
-     * }
-     * 
-     * }catch (Exception e){ e.printStackTrace(); } }
-     */
 
 }

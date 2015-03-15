@@ -1,4 +1,4 @@
-package org.salesforce.apexdoc;
+package org.salesforce.apexdoc.model;
 
 public class ClassGroup {
     private String strName;

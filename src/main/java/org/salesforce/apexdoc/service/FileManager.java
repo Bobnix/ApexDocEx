@@ -1,4 +1,4 @@
-package org.salesforce.apexdoc;
+package org.salesforce.apexdoc.service;
 
 import java.io.BufferedReader;
 import java.io.DataInputStream;
@@ -9,31 +9,29 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.StringWriter;
+import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.Velocity;
-import org.apache.velocity.runtime.RuntimeConstants;
-import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
-import org.apache.velocity.tools.generic.EscapeTool;
+import org.salesforce.apexdoc.model.ClassGroup;
 import org.salesforce.apexdoc.model.ClassModel;
 
 public class FileManager {
 	    
-    public static final String ROOT_DIRECTORY = "ApexDocumentation";
-    public static final String DEFAULT_HOME_CONTENTS = "<h1>Project Home</h1>";
+    private static final String ROOT_DIRECTORY = "ApexDocumentation";
+    private static final String DEFAULT_HOME_CONTENTS = "<h1>Project Home</h1>";
 	
     private String path;
     private StringBuffer infoMessages;
     private String[] rgstrScope;
+    private TemplateService templateService;
 
-    public FileManager() {
+	public FileManager() {
         infoMessages = new StringBuffer();
     }
 
@@ -64,7 +62,7 @@ public class FileManager {
         rgstrScope = scope;
     }
 
-    private boolean createHTML(TreeMap<String, String> mapFNameToContent, IProgressMonitor monitor) {
+    private boolean createHTML(TreeMap<String, String> mapFNameToContent) {
         try {
             if (path.endsWith("/") || path.endsWith("\\")) {
                 path += ROOT_DIRECTORY; 
@@ -83,8 +81,6 @@ public class FileManager {
                 writer.close();
                 infoMessages.append(fileName + " Processed...\n");
                 System.out.println(fileName + " Processed...");
-                if (monitor != null)
-                    monitor.worked(1);
             }
             copy(path);
             return true;
@@ -119,7 +115,7 @@ public class FileManager {
      * @param monitor
      */
     private void makeFile(TreeMap<String, ClassGroup> mapGroupNameToClassGroup, ArrayList<ClassModel> cModels,
-            String projectDetail, String homeContents, String hostedSourceURL, IProgressMonitor monitor) {
+            String projectDetail, String homeContents, String hostedSourceURL) {
         String links = "<table width='100%'>";
         links += strHTMLScopingPanel();
         links += "<tr style='vertical-align:top;' >";
@@ -139,7 +135,7 @@ public class FileManager {
         mapFNameToContent.put("index", homeContents);
 
         // create our Class Group content files
-        createClassGroupContent(mapFNameToContent, links, projectDetail, mapGroupNameToClassGroup, cModels, monitor);
+        createClassGroupContent(mapFNameToContent, links, projectDetail, mapGroupNameToClassGroup, cModels);
 
         for (ClassModel cModel : cModels) {
             String contents = links;
@@ -162,10 +158,8 @@ public class FileManager {
 
             contents = getPageWrapper(projectDetail, contents);
             mapFNameToContent.put(fileName, contents);
-            if (monitor != null)
-                monitor.worked(1);
         }
-        createHTML(mapFNameToContent, monitor);
+        createHTML(mapFNameToContent);
     }
 
     /*********************************************************************************************
@@ -176,42 +170,29 @@ public class FileManager {
      * @return html string
      */
     private String htmlForClassModel(ClassModel cModel, String hostedSourceURL) {
-    	
-    	Velocity.setProperty(RuntimeConstants.RESOURCE_LOADER, "classpath"); 
-        Velocity.setProperty("classpath.resource.loader.class", ClasspathResourceLoader.class.getName());
-        Velocity.init();
- 
-        // Getting the Template
-        Template temp = Velocity.getTemplate("main/resource/templates/classPage.vm");
  
         // Create a context and add data to the template placeholder
         VelocityContext context = new VelocityContext();
         context.put("class", cModel);
         context.put("hostedSourceURL", hostedSourceURL);
-        context.put("esc", new EscapeTool());
  
-        // Fetch template into a StringWriter
-        StringWriter writer = new StringWriter();
-        temp.merge( context, writer );
-        return writer.toString();
+        return getTemplateService().createClassPage(context);
     }
 
     // create our Class Group content files
     private void createClassGroupContent(TreeMap<String, String> mapFNameToContent, String links, String projectDetail,
             TreeMap<String, ClassGroup> mapGroupNameToClassGroup,
-            ArrayList<ClassModel> cModels, IProgressMonitor monitor) {
+            ArrayList<ClassModel> cModels) {
 
         for (String strGroup : mapGroupNameToClassGroup.keySet()) {
             ClassGroup cg = mapGroupNameToClassGroup.get(strGroup);
             if (cg.getContentSource() != null) {
                 String cgContent = parseHTMLFile(cg.getContentSource());
-                if (cgContent != "") {
+                if ("".equals(cgContent)) {
                     String strHtml = getPageWrapper(projectDetail, links + "<td class='contentTD'>" +
                             "<h2 class='section-title'>" +
                             escapeHTML(cg.getName()) + "</h2>" + cgContent + "</td>");
                     mapFNameToContent.put(cg.getContentFilename(), strHtml);
-                    if (monitor != null)
-                        monitor.worked(1);
                 }
             }
         }
@@ -229,12 +210,7 @@ public class FileManager {
      */
     private String getPageLinks(TreeMap<String, ClassGroup> mapGroupNameToClassGroup, ArrayList<ClassModel> cModels) {
         
-        // this is the only place we need the list of class models sorted by name.
-    	//TODO: replace with comparator
-        TreeMap<String, ClassModel> tm = new TreeMap<String, ClassModel>();
-        for (ClassModel cm : cModels)
-            tm.put(cm.getClassName().toLowerCase(), cm);
-        cModels = new ArrayList<ClassModel>(tm.values());
+        Collections.sort(cModels);
         
         // add a bucket ClassGroup for all Classes without a ClassGroup specified
         mapGroupNameToClassGroup.put("Miscellaneous", new ClassGroup("Miscellaneous", null));
@@ -250,24 +226,12 @@ public class FileManager {
             }
         }
         
-        
-        Velocity.setProperty(RuntimeConstants.RESOURCE_LOADER, "classpath"); 
-        Velocity.setProperty("classpath.resource.loader.class", ClasspathResourceLoader.class.getName());
-        Velocity.init();
- 
-        // Getting the Template
-        Template temp = Velocity.getTemplate("main/resource/templates/pageLinks.vm");
- 
         // Create a context and add data to the template placeholder
         VelocityContext context = new VelocityContext();
         context.put("groups", mapGroupNameToClassGroup);
         context.put("classes", classesByGroup);
- 
-        // Fetch template into a StringWriter
-        StringWriter writer = new StringWriter();
-        temp.merge( context, writer );
         
-        return writer.toString();
+        return getTemplateService().createLinks(context);
     }
 
     private void docopy(String source, String target) throws Exception {
@@ -317,30 +281,14 @@ public class FileManager {
     }
 
     public void createDoc(TreeMap<String, ClassGroup> mapGroupNameToClassGroup, ArrayList<ClassModel> cModels,
-            String projectDetail, String homeContents, String hostedSourceURL, IProgressMonitor monitor) {
-        makeFile(mapGroupNameToClassGroup, cModels, projectDetail, homeContents, hostedSourceURL, monitor);
+            String projectDetail, String homeContents, String hostedSourceURL) {
+        makeFile(mapGroupNameToClassGroup, cModels, projectDetail, homeContents, hostedSourceURL);
     }
 
     private String parseFile(String filePath) {
         try {
             if (filePath != null && filePath.trim().length() > 0) {
-                FileInputStream fstream = new FileInputStream(filePath);
-                // Get the object of DataInputStream
-                DataInputStream in = new DataInputStream(fstream);
-                BufferedReader br = new BufferedReader(new InputStreamReader(in));
-                String contents = "";
-                String strLine;
-
-                while ((strLine = br.readLine()) != null) {
-                    // Print the content on the console
-                    strLine = strLine.trim();
-                    if (strLine != null && strLine.length() > 0) {
-                        contents += strLine;
-                    }
-                }
-                // System.out.println("Contents = " + contents);
-                br.close();
-                return contents;
+                return new String(Files.readAllBytes(new File(filePath).toPath()));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -366,22 +314,20 @@ public class FileManager {
     }
     
     private String getPageWrapper(String projectDetail, String content) {
-    	Velocity.setProperty(RuntimeConstants.RESOURCE_LOADER, "classpath"); 
-        Velocity.setProperty("classpath.resource.loader.class", ClasspathResourceLoader.class.getName());
-        Velocity.init();
- 
-        // Getting the Template
-        Template temp = Velocity.getTemplate("main/resource/templates/pageWrapper.vm");
  
         // Create a context and add data to the template placeholder
         VelocityContext context = new VelocityContext();
         context.put("projectDetail", projectDetail);
         context.put("content", content);
  
-        // Fetch template into a StringWriter
-        StringWriter writer = new StringWriter();
-        temp.merge( context, writer );
-        return writer.toString();
+        return getTemplateService().createPageWrapper(context);
     }
+    
+    private TemplateService getTemplateService() {
+    	if(templateService == null){
+    		templateService = new TemplateService();
+    	}
+		return templateService;
+	}
 
 }
