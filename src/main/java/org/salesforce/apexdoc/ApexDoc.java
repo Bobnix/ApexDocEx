@@ -4,26 +4,23 @@ import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Stack;
 import java.util.TreeMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.salesforce.apexdoc.model.ClassGroup;
 import org.salesforce.apexdoc.model.ClassModel;
-import org.salesforce.apexdoc.model.MethodModel;
-import org.salesforce.apexdoc.model.PropertyModel;
+import org.salesforce.apexdoc.service.ClassParsingService;
 import org.salesforce.apexdoc.service.FileManager;
 
 public class ApexDoc {
 
-    private static FileManager fm;
+    private FileManager fm;
     private static String[] rgstrScope = {"global","public","webService"};
+    
+    private ClassParsingService parsingService;
 
     // public entry point when called from the command line.
     public static void main(String[] args) {
@@ -38,8 +35,6 @@ public class ApexDoc {
         }
     }
 
-    // public main routine which is used by both command line invocation and
-    // Eclipse PlugIn invocation
     private void RunApexDoc(String[] args) {
         String sourceDirectory = "";
         String targetDirectory = "";
@@ -137,181 +132,22 @@ public class ApexDoc {
     }
 
     private ClassModel parseFileContents(String filePath) {
-        try {
-            FileInputStream fstream = new FileInputStream(filePath);
-            // Get the object of DataInputStream
-            DataInputStream in = new DataInputStream(fstream);
-            BufferedReader br = new BufferedReader(new InputStreamReader(in));
-            String strLine;
-            boolean commentsStarted = false;
-            boolean docBlockStarted = false;
-            int nestedCurlyBraceDepth = 0;
-            ArrayList<String> lstComments = new ArrayList<String>();
-            ClassModel cModel = null;
-            ClassModel cModelParent = null;
-            Stack<ClassModel> cModels = new Stack<ClassModel>();
-
-            // DH: Consider using java.io.StreamTokenizer to read the file a
-            // token at a time?
-            //
-            // new strategy notes:
-            // any line with " class " is a class definition
-            // any line with scope (global, public, private) is a class, method,
-            // or property definition.
-            // you can detect a method vs. a property by the presence of ( )'s
-            // you can also detect properties by get; or set;, though they may
-            // not be on the first line.
-            // in apex, methods that start with get and take no params, or set
-            // with 1 param, are actually properties.
-            //
-
-            int iLine = 0;
-            while ((strLine = br.readLine()) != null) {
-                iLine++;
-
-                strLine = strLine.trim();
-                if (strLine.length() == 0)
-                    continue;
-
-                // ignore anything after // style comments. this allows hiding of tokens from ApexDoc.
-                int ich = strLine.indexOf("//");
-                if (ich > -1) {
-                    strLine = strLine.substring(0, ich);
-                }
-
-                // gather up our comments
-                if (strLine.startsWith("/*")) {
-                    commentsStarted = true;
-                    boolean commentEnded = false;
-                    if(strLine.startsWith("/**")){
-                    	if (strLine.endsWith("*/")) {
-                            strLine = strLine.replace("*/", "");
-                            commentEnded = true;
-                    	}
-                    	lstComments.add(strLine);
-                    	docBlockStarted = true;
-                    }
-                    if (strLine.endsWith("*/") || commentEnded) {
-                        commentsStarted = false;
-                        docBlockStarted = false;
-                    }
-                    continue;
-                }
-
-                if (commentsStarted && strLine.endsWith("*/")) {
-                    strLine = strLine.replace("*/", "");
-                    if(docBlockStarted){
-                    	lstComments.add(strLine);
-                    	docBlockStarted = false;
-                    }
-                    commentsStarted = false;
-                    continue;
-                }
-
-                if (commentsStarted) {
-                	if(docBlockStarted){
-                		lstComments.add(strLine);
-                	}
-                    continue;
-                }
-
-                // keep track of our nesting so we know which class we are in
-                int openCurlies = countChars(strLine, '{');
-                int closeCurlies = countChars(strLine, '}');
-                nestedCurlyBraceDepth += openCurlies;
-                nestedCurlyBraceDepth -= closeCurlies;
-
-                // if we are in a nested class, and we just got back to nesting level 1,
-                // then we are done with the nested class, and should set its props and methods.
-                if (nestedCurlyBraceDepth == 1 && openCurlies != closeCurlies && cModels.size() > 1 && cModel != null) {
-                    cModels.pop();
-                    cModel = cModels.peek();
-                    continue;
-                }
-
-                // ignore anything after an =. this avoids confusing properties with methods.
-                ich = strLine.indexOf("=");
-                if (ich > -1) {
-                    strLine = strLine.substring(0, ich);
-                }
-
-                // ignore anything after an {. this avoids confusing properties with methods.
-                ich = strLine.indexOf("{");
-                if (ich > -1) {
-                    strLine = strLine.substring(0, ich);
-                }
-
-                // ignore lines not dealing with scope
-                if (strContainsScope(strLine) == null &&
-                        // interface methods don't have scope
-                        !(cModel != null && cModel.getIsInterface() && strLine.contains("("))) {
-                    continue;
-                }
-
-                // look for a class
-                if ((strLine.toLowerCase().contains(" class ") || strLine.toLowerCase().contains(" interface "))) {
-
-                    // create the new class
-                    ClassModel cModelNew = new ClassModel(cModelParent);
-                    fillClassModel(cModelParent, cModelNew, strLine, lstComments, iLine);
-                    lstComments.clear();
-
-                    // keep track of the new class, as long as it wasn't a single liner {}
-                    // but handle not having any curlies on the class line!
-                    if (openCurlies == 0 || openCurlies != closeCurlies) {
-                        cModels.push(cModelNew);
-                        cModel = cModelNew;
-                    }
-
-                    // add it to its parent (or track the parent)
-                    if (cModelParent != null)
-                        cModelParent.addChildClass(cModelNew);
-                    else
-                        cModelParent = cModelNew;
-                    continue;
-                }
-
-                // look for a method
-                if (strLine.contains("(")) {
-                    // deal with a method over multiple lines.
-                    while (!strLine.contains(")")) {
-                        strLine += br.readLine();
-                        iLine++;
-                    }
-                    MethodModel mModel = new MethodModel();
-                    fillMethodModel(mModel, strLine, lstComments, iLine);
-                    cModel.getMethods().add(mModel);
-                    lstComments.clear();
-                    continue;
-                }
-
-                // handle set & get within the property
-                if (strLine.contains(" get ") ||
-                        strLine.contains(" set ") ||
-                        strLine.contains(" get;") ||
-                        strLine.contains(" set;") ||
-                        strLine.contains(" get{") ||
-                        strLine.contains(" set{"))
-                    continue;
-
-                // must be a property
-                PropertyModel propertyModel = new PropertyModel();
-                fillPropertyModel(propertyModel, strLine, lstComments, iLine);
-                cModel.getProperties().add(propertyModel);
-                lstComments.clear();
-                continue;
-
-            }
-
-            // Close the input stream
-            in.close();
-            // we only want to return the parent class
-            return cModelParent;
-        } catch (Exception e) { // Catch exception if any
-            System.err.println("Error: " + e.getMessage());
-        }
-
-        return null;
+			try {
+				FileInputStream fstream = new FileInputStream(filePath);
+				DataInputStream in = new DataInputStream(fstream);
+	            BufferedReader br = new BufferedReader(new InputStreamReader(in));
+	            ClassModel parsedClass = getClassParsingService().parseFileContents(br);
+	            in.close();
+	            return parsedClass;
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return null;
+            
     }
 
     public static String strContainsScope(String str) {
@@ -323,115 +159,12 @@ public class ApexDoc {
         }
         return null;
     }
-
-    private void fillPropertyModel(PropertyModel propertyModel, String name, ArrayList<String> lstComments,
-            int iLine) {
-        propertyModel.setNameLine(name, iLine);
-        Map<String, List<String>> tokenValues = tokenizeDocBlock(lstComments);
-
-        if(tokenValues.containsKey("@description")){
-        	propertyModel.setDescription(tokenValues.get("@description").get(0));
-        }
-    }
     
-    private void fillMethodModel(MethodModel mModel, String name, ArrayList<String> lstComments, int iLine) {
-        mModel.setNameLine(name, iLine);
-        Map<String, List<String>> tokenValues = tokenizeDocBlock(lstComments);
-
-        if(tokenValues.containsKey("@description")){
-        	mModel.setDescription(tokenValues.get("@description").get(0));
-        }
-        if(tokenValues.containsKey("@author")){
-        	mModel.setAuthor(tokenValues.get("@author").get(0));
-        }
-        if(tokenValues.containsKey("@date")){
-        	mModel.setDate(tokenValues.get("@date").get(0));
-        }
-        if(tokenValues.containsKey("@return")){
-        	mModel.setReturns(tokenValues.get("@return").get(0));
-        }
-        if(tokenValues.containsKey("@param")){
-        	mModel.setParams(tokenValues.get("@param"));
-        }
-    }
-    
-    private Map<String, List<String>> tokenizeDocBlock(List<String> docBlock){
-    	Map<String, List<String>> tokenValues = new HashMap<String, List<String>>();
-        String lastToken = null;
-        String lastTokenValue = null;
-        Pattern p = Pattern.compile("(@[\\w]*)(.*)");
-    	
-        for (String comment : docBlock) {
-        	if(comment.contains("/*") || comment.contains("*/")){
-        		continue;
-        	}
-            comment = comment.trim().replaceAll("^\\s?\\*\\s?", "");
-            
-            Matcher m = p.matcher(comment);
-        	if (m.find()) {
-        		if(lastTokenValue != null){
-        			tokenValues.get(lastToken).add(lastTokenValue);
-        		}
-        		
-        		lastToken = m.group(1);
-        		if(!tokenValues.containsKey(lastToken)){
-        			tokenValues.put(lastToken, new ArrayList<String>());
-        		}
-        		lastTokenValue = m.group(2);
-        	} else if(lastToken == null){
-        		lastToken = "@description";
-        		lastTokenValue = comment;
-        		tokenValues.put(lastToken, new ArrayList<String>());
-        	} else {
-        		lastTokenValue += comment;
-        	}
-            
-        }
-        if(lastTokenValue != null){
-			tokenValues.get(lastToken).add(lastTokenValue);
-		}
-        return tokenValues;
-    }
-
-    private void fillClassModel(ClassModel cModelParent, ClassModel cModel, String name,
-            ArrayList<String> lstComments, int iLine) {
-        cModel.setNameLine(name, iLine);
-        if (name.toLowerCase().contains(" interface "))
-            cModel.setIsInterface(true);
-        
-        Map<String, List<String>> tokenValues = tokenizeDocBlock(lstComments);
-
-        if(tokenValues.containsKey("@description")){
-        	cModel.setDescription(tokenValues.get("@description").get(0));
-        }
-        if(tokenValues.containsKey("@author")){
-        	cModel.setAuthor(tokenValues.get("@author").get(0));
-        }
-        if(tokenValues.containsKey("@date")){
-        	cModel.setDate(tokenValues.get("@date").get(0));
-        }
-        if(tokenValues.containsKey("@group")){
-        	cModel.setClassGroup(tokenValues.get("@group").get(0));
-        }
-        if(tokenValues.containsKey("@group-content")){
-        	cModel.setClassGroupContent(tokenValues.get("@group-content").get(0));
-        }
-    }
-
-    /*************************************************************************
-     * @description Count the number of occurrences of character in the string
-     * @param str
-     * @param ch
-     * @return int
-     */
-    private int countChars(String str, char ch) {
-        int count = 0;
-        for (int i = 0; i < str.length(); ++i) {
-            if (str.charAt(i) == ch) {
-                ++count;
-            }
-        }
-        return count;
+    private ClassParsingService getClassParsingService(){
+    	if(parsingService == null){
+    		parsingService = new ClassParsingService();
+    	}
+    	return parsingService;
     }
 
 }

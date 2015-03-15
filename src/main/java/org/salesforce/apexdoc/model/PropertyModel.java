@@ -1,5 +1,8 @@
 package org.salesforce.apexdoc.model;
 
+import java.util.List;
+import java.util.Map;
+
 
 public class PropertyModel extends ApexModel implements Comparable<PropertyModel> {
 
@@ -7,12 +10,13 @@ public class PropertyModel extends ApexModel implements Comparable<PropertyModel
         if (nameLine != null) {
             // remove any trailing stuff after property name. { =
             int i = nameLine.indexOf('{');
-            if (i == -1)
+            if (i == -1){
                 i = nameLine.indexOf('=');
-            if (i == -1)
+            } if (i == -1){
                 i = nameLine.indexOf(';');
-            if (i >= 0)
+            } if (i >= 0){
                 nameLine = nameLine.substring(0, i);
+            }
 
         }
         super.setNameLine(nameLine, iLine);
@@ -33,5 +37,12 @@ public class PropertyModel extends ApexModel implements Comparable<PropertyModel
 	@Override
 	public int compareTo(PropertyModel otherModel) {
 		return (this.getPropertyName().toLowerCase().compareTo(otherModel.getPropertyName().toLowerCase()));
+	}
+
+	@Override
+	public void mergeDocBlockData(Map<String, List<String>> data) {
+		if(data.containsKey("@description")){
+        	setDescription(data.get("@description").get(0));
+        }
 	}
 }

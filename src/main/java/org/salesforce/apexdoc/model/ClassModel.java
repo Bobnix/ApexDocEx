@@ -2,6 +2,7 @@ package org.salesforce.apexdoc.model;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.TreeMap;
 import java.util.Collections;
 
@@ -23,7 +24,15 @@ public class ClassModel extends ApexModel implements Comparable<ClassModel> {
         this.cmodelParent = cmodelParent;
         childClasses = new ArrayList<ClassModel>();
     }
-
+    
+    @Override
+    public void setNameLine(String nameLine, int iLine) {
+    	super.setNameLine(nameLine, iLine);
+    	if (nameLine.toLowerCase().contains(" interface ")){
+            setIsInterface(true);
+    	}
+    }
+    
     public List<PropertyModel> getProperties() {
         return properties;
     }
@@ -129,5 +138,24 @@ public class ClassModel extends ApexModel implements Comparable<ClassModel> {
 	@Override
 	public int compareTo(ClassModel otherModel) {
 		return (this.getClassName().toLowerCase().compareTo(otherModel.getClassName().toLowerCase()));
+	}
+
+	@Override
+	public void mergeDocBlockData(Map<String, List<String>> data) {
+		if(data.containsKey("@description")){
+        	setDescription(data.get("@description").get(0));
+        }
+        if(data.containsKey("@author")){
+        	setAuthor(data.get("@author").get(0));
+        }
+        if(data.containsKey("@date")){
+        	setDate(data.get("@date").get(0));
+        }
+        if(data.containsKey("@group")){
+        	setClassGroup(data.get("@group").get(0));
+        }
+        if(data.containsKey("@group-content")){
+        	setClassGroupContent(data.get("@group-content").get(0));
+        }
 	}
 }

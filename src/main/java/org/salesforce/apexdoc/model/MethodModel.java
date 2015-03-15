@@ -3,6 +3,7 @@ package org.salesforce.apexdoc.model;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -77,4 +78,23 @@ public class MethodModel extends ApexModel {
         }
         return "";
     }
+
+	@Override
+	public void mergeDocBlockData(Map<String, List<String>> data) {
+		if(data.containsKey("@description")){
+        	setDescription(data.get("@description").get(0));
+        }
+        if(data.containsKey("@author")){
+        	setAuthor(data.get("@author").get(0));
+        }
+        if(data.containsKey("@date")){
+        	setDate(data.get("@date").get(0));
+        }
+        if(data.containsKey("@return")){
+        	setReturns(data.get("@return").get(0));
+        }
+        if(data.containsKey("@param")){
+        	setParams(data.get("@param"));
+        }
+	}
 }

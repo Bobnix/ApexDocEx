@@ -1,8 +1,11 @@
 package org.salesforce.apexdoc.model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -62,6 +65,17 @@ public class PropertyModelTest {
 		Assert.assertEquals(models.get(0).getPropertyName(), "const");
 		Assert.assertEquals(models.get(1).getPropertyName(), "prop");
 		Assert.assertEquals(models.get(2).getPropertyName(), "var");
+	}
+	
+	@Test
+	public void testMergeDocBlockData(){
+		PropertyModel model = new PropertyModel();
+		Map<String, List<String>> testData = new HashMap<String, List<String>>();
+		testData.put("@description", Arrays.asList("Test description"));
+		model.mergeDocBlockData(testData);
+		
+		Assert.assertEquals(model.getDescription(), "Test description");
+		
 	}
 	
 }

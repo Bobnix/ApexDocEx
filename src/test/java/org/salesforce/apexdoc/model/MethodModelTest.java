@@ -1,7 +1,10 @@
 package org.salesforce.apexdoc.model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -53,6 +56,27 @@ public class MethodModelTest {
 		Assert.assertEquals(retVal.get(1).get(1), "withMultipleSpace");
 		Assert.assertEquals(retVal.get(2).get(0), "param");
 		Assert.assertEquals(retVal.get(2).get(1), "withTab");
+	}
+	
+	@Test
+	public void testMergeDocBlockData(){
+		MethodModel model = new MethodModel();
+		Map<String, List<String>> testData = new HashMap<String, List<String>>();
+		testData.put("@description", Arrays.asList("Test description"));
+		testData.put("@author", Arrays.asList("Test Person"));
+		testData.put("@date", Arrays.asList("01/01/01"));
+		testData.put("@return", Arrays.asList("Return value"));
+		testData.put("@param", Arrays.asList("Param 1"));
+		testData.put("@param", Arrays.asList("Param 2"));
+		model.mergeDocBlockData(testData);
+
+		Assert.assertEquals(model.getDescription(), "Test description");
+		Assert.assertEquals(model.getAuthor(), "Test Person");
+		Assert.assertEquals(model.getDate(), "01/01/01");
+		Assert.assertEquals(model.getReturns(), "Return value");
+		Assert.assertTrue(model.getParams().contains("Param 1"));
+		Assert.assertTrue(model.getParams().contains("Param 2"));
+		
 	}
 
 }

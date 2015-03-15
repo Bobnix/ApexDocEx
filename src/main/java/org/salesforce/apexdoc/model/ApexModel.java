@@ -1,8 +1,11 @@
 package org.salesforce.apexdoc.model;
 
+import java.util.List;
+import java.util.Map;
+
 import org.salesforce.apexdoc.ApexDoc;
 
-abstract class ApexModel {
+public abstract class ApexModel {
 
     private String nameLine;
     private int inameLine;
@@ -74,5 +77,7 @@ abstract class ApexModel {
                 scope = str;
         }
     }
+    
+    public abstract void mergeDocBlockData(Map<String, List<String>> data);
 
 }
