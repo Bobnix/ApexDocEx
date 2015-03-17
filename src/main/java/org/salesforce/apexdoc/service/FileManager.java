@@ -224,7 +224,7 @@ public class FileManager {
 
     private void doCopy(String source, String target) throws IOException{
 
-        InputStream is = this.getClass().getClassLoader().getResourceAsStream("main/resource/"+source);
+        InputStream is = this.getClass().getClassLoader().getResourceAsStream(source);
         FileOutputStream to = new FileOutputStream(target + "/" + source);
 
         byte[] buffer = new byte[4096];

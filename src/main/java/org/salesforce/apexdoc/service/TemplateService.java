@@ -21,15 +21,15 @@ public class TemplateService {
 	}
 	
 	public String createLinks(VelocityContext context){
-		return processTemplate("main/resource/templates/pageLinks.vm", context);
+		return processTemplate("templates/pageLinks.vm", context);
 	}
 	
 	public String createPageWrapper(VelocityContext context){
-		return processTemplate("main/resource/templates/pageWrapper.vm", context);
+		return processTemplate("templates/pageWrapper.vm", context);
 	}
 	
 	public String createClassPage(VelocityContext context){
-		return processTemplate("main/resource/templates/classPage.vm", context);
+		return processTemplate("templates/classPage.vm", context);
 	}
 	
 	private String processTemplate(String template, VelocityContext context){

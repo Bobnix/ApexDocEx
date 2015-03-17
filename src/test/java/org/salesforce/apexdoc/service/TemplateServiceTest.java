@@ -33,7 +33,7 @@ public class TemplateServiceTest {
     public void testCreateLink(){
         final VelocityEngine mockEngine = Mockito.mock(VelocityEngine.class);
         Template mockTemplate = Mockito.mock(Template.class);
-        Mockito.when(mockEngine.getTemplate("main/resource/templates/pageLinks.vm")).thenReturn(mockTemplate);
+        Mockito.when(mockEngine.getTemplate("templates/pageLinks.vm")).thenReturn(mockTemplate);
 
         TemplateService service = new TemplateService(){
             @Override
@@ -52,7 +52,7 @@ public class TemplateServiceTest {
     public void testCreatePageWrapper(){
         final VelocityEngine mockEngine = Mockito.mock(VelocityEngine.class);
         Template mockTemplate = Mockito.mock(Template.class);
-        Mockito.when(mockEngine.getTemplate("main/resource/templates/pageWrapper.vm")).thenReturn(mockTemplate);
+        Mockito.when(mockEngine.getTemplate("templates/pageWrapper.vm")).thenReturn(mockTemplate);
 
         TemplateService service = new TemplateService(){
             @Override
@@ -71,7 +71,7 @@ public class TemplateServiceTest {
     public void testCreateClassPage(){
         final VelocityEngine mockEngine = Mockito.mock(VelocityEngine.class);
         Template mockTemplate = Mockito.mock(Template.class);
-        Mockito.when(mockEngine.getTemplate("main/resource/templates/classPage.vm")).thenReturn(mockTemplate);
+        Mockito.when(mockEngine.getTemplate("templates/classPage.vm")).thenReturn(mockTemplate);
 
         TemplateService service = new TemplateService(){
             @Override

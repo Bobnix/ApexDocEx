@@ -179,8 +179,6 @@ public class ClassParsingService {
                 lstComments.clear();
 
             }
-
-            // Close the input stream
             
             // we only want to return the parent class
             return cModelParent;
