@@ -7,8 +7,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.TreeMap;
 
+import org.apache.commons.io.FilenameUtils;
 import org.salesforce.apexdoc.model.ClassGroup;
 import org.salesforce.apexdoc.model.ClassModel;
 import org.salesforce.apexdoc.service.ClassParsingService;
@@ -16,10 +18,10 @@ import org.salesforce.apexdoc.service.FileManager;
 
 public class ApexDoc {
 
-    private FileManager fm;
     private static String[] rgstrScope = {"global","public","webService"};
     
     private ClassParsingService parsingService;
+    private FileManager fileManager;
 
     // public entry point when called from the command line.
     public static void main(String[] args) {
@@ -44,31 +46,31 @@ public class ApexDoc {
         // parse command line parameters
         for (int i = 0; i < args.length; i++) {
 
-            if (args[i] == null) {
-                continue;
-            } else if (args[i].equalsIgnoreCase("-s")) {
-                sourceDirectory = args[++i];
-            } else if (args[i].equalsIgnoreCase("-g")) {
-                hostedSourceURL = args[++i];
-            } else if (args[i].equalsIgnoreCase("-t")) {
-                targetDirectory = args[++i];
-            } else if (args[i].equalsIgnoreCase("-h")) {
-                homefilepath = args[++i];
-            } else if (args[i].equalsIgnoreCase("-a")) {
-                authorfilepath = args[++i];
-            } else if (args[i].equalsIgnoreCase("-p")) {
-                String strScope = args[++i];
-                rgstrScope = strScope.split(";");
-            } else {
-                printHelp();
-                System.exit(-1);
+            if (args[i] != null) {
+                if (args[i].equalsIgnoreCase("-s")) {
+                    sourceDirectory = args[++i];
+                } else if (args[i].equalsIgnoreCase("-g")) {
+                    hostedSourceURL = args[++i];
+                } else if (args[i].equalsIgnoreCase("-t")) {
+                    targetDirectory = args[++i];
+                } else if (args[i].equalsIgnoreCase("-h")) {
+                    homefilepath = args[++i];
+                } else if (args[i].equalsIgnoreCase("-a")) {
+                    authorfilepath = args[++i];
+                } else if (args[i].equalsIgnoreCase("-p")) {
+                    String strScope = args[++i];
+                    rgstrScope = strScope.split(";");
+                } else {
+                    printHelp();
+                    System.exit(-1);
+                }
             }
         }
 
         // find all the files to parse
-        fm = new FileManager(targetDirectory, rgstrScope);
-        ArrayList<File> files = fm.getFiles(sourceDirectory);
-        ArrayList<ClassModel> cModels = new ArrayList<>();
+        FileManager fm = getFileManager();
+        List<File> files = fm.getFiles(sourceDirectory);
+        List<ClassModel> cModels = new ArrayList<>();
 
         // parse each file, creating a class model for it
         for (File fromFile : files) {
@@ -90,7 +92,7 @@ public class ApexDoc {
         String homeContents = fm.parseHTMLFile(homefilepath);
 
         // create our set of HTML files
-        fm.createDoc(mapGroupNameToClassGroup, cModels, projectDetail, homeContents, hostedSourceURL);
+        fm.createDoc(mapGroupNameToClassGroup, cModels, projectDetail, homeContents, hostedSourceURL, rgstrScope, targetDirectory);
 
         // we are done!
         System.out.println("ApexDoc has completed!");
@@ -108,14 +110,16 @@ public class ApexDoc {
         System.out.println("<scope> - Optional. Semicolon seperated list of scopes to document.  Defaults to 'global;public'. ");
     }
 
-    private TreeMap<String, ClassGroup> createMapGroupNameToClassGroup(ArrayList<ClassModel> cModels,
+    private TreeMap<String, ClassGroup> createMapGroupNameToClassGroup(List<ClassModel> cModels,
             String sourceDirectory) {
         TreeMap<String, ClassGroup> map = new TreeMap<>();
         for (ClassModel cmodel : cModels) {
             String strGroup = cmodel.getClassGroup();
             String strGroupContent = cmodel.getClassGroupContent();
             if (strGroupContent != null)
-                strGroupContent = sourceDirectory + "/" + strGroupContent;
+                strGroupContent = sourceDirectory.trim() + "/" + strGroupContent;
+            strGroupContent = FilenameUtils.separatorsToSystem(strGroupContent);
+
             ClassGroup cg;
             if (strGroup != null) {
                 cg = map.get(strGroup);
@@ -155,12 +159,19 @@ public class ApexDoc {
         }
         return null;
     }
-    
+
     private ClassParsingService getClassParsingService(){
     	if(parsingService == null){
     		parsingService = new ClassParsingService();
     	}
     	return parsingService;
+    }
+
+    private FileManager getFileManager(){
+        if(fileManager == null){
+            fileManager = new FileManager();
+        }
+        return fileManager;
     }
 
 }

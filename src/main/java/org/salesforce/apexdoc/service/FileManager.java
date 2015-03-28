@@ -1,14 +1,13 @@
 package org.salesforce.apexdoc.service;
 
 import java.io.*;
+import java.net.URL;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.velocity.VelocityContext;
 import org.salesforce.apexdoc.model.ClassGroup;
 import org.salesforce.apexdoc.model.ClassModel;
@@ -17,44 +16,14 @@ public class FileManager {
 	    
     private static final String ROOT_DIRECTORY = "ApexDocumentation";
     private static final String DEFAULT_HOME_CONTENTS = "<h1>Project Home</h1>";
-	
-    private String path;
-    private StringBuffer infoMessages;
-    private String[] rgstrScope;
+
     private TemplateService templateService;
 
-	public FileManager() {
-        infoMessages = new StringBuffer();
-    }
-
-    private String escapeHTML(String s) {
-        StringBuilder out = new StringBuilder(Math.max(16, s.length()));
-        for (int i = 0; i < s.length(); i++) {
-            char c = s.charAt(i);
-            if (c > 127 || c == '"' || c == '<' || c == '>' || c == '&') {
-                out.append("&#");
-                out.append((int) c);
-                out.append(';');
-            } else {
-                out.append(c);
-            }
+    private boolean createHTML(TreeMap<String, String> mapFNameToContent, String path) {
+        if (StringUtils.isBlank(path)){
+            path = ".";
         }
-        return out.toString();
-    }
 
-    public FileManager(String path, String[] scope) {
-        infoMessages = new StringBuffer();
-
-        if (path == null || path.trim().length() == 0){
-            this.path = ".";
-        } else {
-            this.path = path;
-        }
-        
-        rgstrScope = scope;
-    }
-
-    private boolean createHTML(TreeMap<String, String> mapFNameToContent) {
         try {
             if (path.endsWith("/") || path.endsWith("\\")) {
                 path += ROOT_DIRECTORY; 
@@ -62,21 +31,24 @@ public class FileManager {
                 path += File.separator + ROOT_DIRECTORY; 
             }
 
-            (new File(path)).mkdirs();
+            File directory = new File(path);
+            FileUtils.deleteDirectory(directory);
+            if(directory.mkdirs()) {
 
-            for (String fileName : mapFNameToContent.keySet()) {
-                String contents = mapFNameToContent.get(fileName);
-                fileName = path + File.separator + fileName + ".html";
-                File file = new File(fileName);
-                FileWriter writer = new FileWriter(file);
-                writer.write(contents);
-                writer.close();
-                infoMessages.append(fileName).append(" Processed...\n");
-                System.out.println(fileName + " Processed...");
+                for (String fileName : mapFNameToContent.keySet()) {
+                    String contents = mapFNameToContent.get(fileName);
+                    fileName = path + File.separator + fileName + ".html";
+                    File file = new File(fileName);
+                    FileWriter writer = new FileWriter(file);
+                    writer.write(contents);
+                    writer.close();
+                    System.out.println(fileName + " Processed...");
+                }
+                copy(path);
+                return true;
             }
-            copy(path);
-            return true;
-        } catch (Exception e) {
+
+        } catch (IOException e) {
 
             e.printStackTrace();
         }
@@ -84,44 +56,25 @@ public class FileManager {
         return false;
     }
 
-    private String strHTMLScopingPanel() {
-        String str = "<tr><td colspan='2' style='text-align: center;' >";
-        str += "Show: ";
-
-        for (String scope : rgstrScope) {
-            str += "<input type='checkbox' checked='checked' id='cbx" + scope +
-                    "' onclick='ToggleScope(\"" + scope + "\", this.checked );'>" +
-                    scope + "</input>&nbsp;&nbsp;";
-        }
-        str += "</td></tr>";
-        return str;
-    }
-
-    /********************************************************************************************
-     * main routine that creates an HTML file for each class specified
-     * @param mapGroupNameToClassGroup
-     * @param cModels
-     * @param projectDetail
-     * @param homeContents
-     * @param hostedSourceURL
+    /**
+     * Main routine that creates an HTML file for each class specified
+     * @param mapGroupNameToClassGroup  The class groups
+     * @param cModels   The class models to make html files for
+     * @param projectDetail The text to use in the header
+     * @param homeContents  The html to use inside the home page
+     * @param hostedSourceURL   The url to the hosted source files
+     * @param rgstrScope    the scopes to process
+     * @param path  the destination folder to put the files in
      */
-    private void makeFile(TreeMap<String, ClassGroup> mapGroupNameToClassGroup, ArrayList<ClassModel> cModels,
-            String projectDetail, String homeContents, String hostedSourceURL) {
-        String links = "<table width='100%'>";
-        links += strHTMLScopingPanel();
-        links += "<tr style='vertical-align:top;' >";
-        links += getPageLinks(mapGroupNameToClassGroup, cModels);
+    public void createDoc(TreeMap<String, ClassGroup> mapGroupNameToClassGroup, List<ClassModel> cModels,
+            String projectDetail, String homeContents, String hostedSourceURL, String[] rgstrScope, String path) {
+        String links = getPageLinks(mapGroupNameToClassGroup, cModels, rgstrScope);
 
-        if (homeContents != null && homeContents.trim().length() > 0) {
-            homeContents = links + "<td class='contentTD'>" + "<h2 class='section-title'>Home</h2>" + homeContents + "</td>";
-            homeContents = getPageWrapper(projectDetail, homeContents);
-        } else {
-            homeContents = DEFAULT_HOME_CONTENTS;
-            homeContents = links + "<td class='contentTD'>" + "<h2 class='section-title'>Home</h2>" + homeContents + "</td>";
-            homeContents = getPageWrapper(projectDetail, homeContents);
-        }
+        homeContents = StringUtils.isBlank(homeContents) ? DEFAULT_HOME_CONTENTS : homeContents;
+        homeContents = links + "<td class='contentTD'>" + "<h2 class='section-title'>Home</h2>" + homeContents + "</td>";
+        homeContents = getPageWrapper(projectDetail, homeContents);
 
-        String fileName = "";
+        String fileName;
         TreeMap<String, String> mapFNameToContent = new TreeMap<>();
         mapFNameToContent.put("index", homeContents);
 
@@ -130,7 +83,7 @@ public class FileManager {
 
         for (ClassModel cModel : cModels) {
             String contents = links;
-            if (cModel.getNameLine() != null && cModel.getNameLine().length() > 0) {
+            if (StringUtils.isNotBlank(cModel.getNameLine())) {
                 fileName = cModel.getClassName();
                 contents += "<td class='contentTD'>";
 
@@ -145,18 +98,17 @@ public class FileManager {
             } else {
                 continue;
             }
-            contents += "</div>";
 
             contents = getPageWrapper(projectDetail, contents);
             mapFNameToContent.put(fileName, contents);
         }
-        createHTML(mapFNameToContent);
+        createHTML(mapFNameToContent, path);
     }
 
-    /*********************************************************************************************
+    /**
      * Creates the HTML for the provided class, including its property and methods
-     * @param cModel
-     * @param hostedSourceURL
+     * @param cModel    The {@link ClassModel} to generate the html from
+     * @param hostedSourceURL   The url where the source will be located
      * @return html string
      */
     private String htmlForClassModel(ClassModel cModel, String hostedSourceURL) {
@@ -177,10 +129,10 @@ public class FileManager {
             ClassGroup cg = mapGroupNameToClassGroup.get(strGroup);
             if (cg.getContentSource() != null) {
                 String cgContent = parseHTMLFile(cg.getContentSource());
-                if ("".equals(cgContent)) {
+                if (!"".equals(cgContent)) {
                     String strHtml = getPageWrapper(projectDetail, links + "<td class='contentTD'>" +
                             "<h2 class='section-title'>" +
-                            escapeHTML(cg.getName()) + "</h2>" + cgContent + "</td>");
+                            StringEscapeUtils.escapeHtml4(cg.getName()) + "</h2>" + cgContent + "</td>");
                     mapFNameToContent.put(cg.getContentFilename(), strHtml);
                 }
             }
@@ -196,7 +148,7 @@ public class FileManager {
      *            list of ClassModels
      * @return String of HTML
      */
-    private String getPageLinks(TreeMap<String, ClassGroup> mapGroupNameToClassGroup, ArrayList<ClassModel> cModels) {
+    private String getPageLinks(TreeMap<String, ClassGroup> mapGroupNameToClassGroup, List<ClassModel> cModels, String[] rgstrScope) {
         
         Collections.sort(cModels);
         
@@ -205,7 +157,7 @@ public class FileManager {
         
         Map<String, List<ClassModel>> classesByGroup = new HashMap<>();
         for (ClassModel cModel : cModels) {
-        	if (cModel.getNameLine() != null && cModel.getNameLine().trim().length() > 0) { //TODO: Replace with isBlank
+        	if (StringUtils.isNotBlank(cModel.getNameLine())) {
 		    	String grp = cModel.getClassGroup() != null?cModel.getClassGroup():"Miscellaneous";
 		    	if(!classesByGroup.containsKey(grp)){
 		    		classesByGroup.put(grp, new ArrayList<ClassModel>());
@@ -218,69 +170,49 @@ public class FileManager {
         VelocityContext context = new VelocityContext();
         context.put("groups", mapGroupNameToClassGroup);
         context.put("classes", classesByGroup);
+        context.put("scopeList", rgstrScope);
         
         return getTemplateService().createLinks(context);
     }
 
     private void doCopy(String source, String target) throws IOException{
-
-        InputStream is = this.getClass().getClassLoader().getResourceAsStream(source);
-        FileOutputStream to = new FileOutputStream(target + "/" + source);
-
-        byte[] buffer = new byte[4096];
-        int bytesRead;
-
-        while ((bytesRead = is.read(buffer)) != -1) {
-            to.write(buffer, 0, bytesRead); // write
+        URL resource = this.getClass().getClassLoader().getResource(source);
+        if(resource != null) {
+            File sourceFile = new File(resource.getFile());
+            FileUtils.copyFile(sourceFile, new File(target + "/" + source));
+        } else {
+            System.err.println("Failed to copy asset to target");
         }
-
-        to.flush();
-        to.close();
-        is.close();
     }
 
+    //TODO: Move the assets into their own directory and copy the whole thing at once
     private void copy(String toFileName) throws IOException {
         doCopy("apex_doc_logo.png", toFileName);
         doCopy("ApexDoc.css", toFileName);
         doCopy("ApexDoc.js", toFileName);
         doCopy("CollapsibleList.js", toFileName);
-        doCopy("jquery-latest.js", toFileName);
         doCopy("toggle_block_btm.gif", toFileName);
         doCopy("toggle_block_stretch.gif", toFileName);
 
     }
 
-    public ArrayList<File> getFiles(String path) {
-        File folder = new File(path);
-        ArrayList<File> listOfFilesToCopy = new ArrayList<>();
-        File[] listOfFiles = folder.listFiles();
-        if (listOfFiles != null && listOfFiles.length > 0) {
-            for (File file : listOfFiles) {
-                if (file.isFile()) {
-                    listOfFilesToCopy.add(file);
-                }
-            }
-        }
-        return listOfFilesToCopy;
+    public List<File> getFiles(String path) {
+        return new ArrayList<>(FileUtils.listFiles(new File(path), new String[]{"cls"}, false));
     }
 
-    public void createDoc(TreeMap<String, ClassGroup> mapGroupNameToClassGroup, ArrayList<ClassModel> cModels,
-            String projectDetail, String homeContents, String hostedSourceURL) {
-        makeFile(mapGroupNameToClassGroup, cModels, projectDetail, homeContents, hostedSourceURL);
-    }
-
-    private String parseFile(String filePath) {
+    protected String parseFile(String filePath) {
         try {
-            if (filePath != null && filePath.trim().length() > 0) {
+            if (StringUtils.isNotBlank(filePath)) {
                 return new String(Files.readAllBytes(new File(filePath).toPath()));
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
         return "";
     }
 
+    //TODO: Not terribly happy with how this currently works, refactor later (breaking change)
     public String parseHTMLFile(String filePath) {
 
         String contents = (parseFile(filePath)).trim();
@@ -289,7 +221,7 @@ public class FileManager {
             int endIndex = contents.indexOf("</body>");
             if (startIndex != -1) {
                 if (endIndex != -1) {
-                    contents = contents.substring(startIndex, endIndex);
+                    contents = contents.substring(startIndex+6, endIndex);
                     return contents;
                 }
             }

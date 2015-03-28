@@ -1,9 +1,6 @@
 <!doctype HTML>
 <html>
-	<head> 
-		<script type='text/javascript' src='https://code.jquery.com/jquery-1.11.1.js'></script>
-		<script type='text/javascript' src='CollapsibleList.js'></script>                                                               
-		<script type='text/javascript' src='ApexDoc.js'></script>                                                              
+	<head>
 		<link rel='stylesheet' type='text/css' href='ApexDoc.css' />
 	</head>
 	<body>
@@ -15,7 +12,7 @@
 					<td>      
 						<h2 style='margin:0px;'>Project Demo</h2>
 						Check out the gitHub project at:<br/>
-						<a href='http://github.com/SalesforceFoundation/ApexDoc'>http://github.com/SalesforceFoundation/ApexDoc</a><br/>
+						<a href='https://github.com/Bobnix/ApexDocEx'>https://github.com/Bobnix/ApexDocEx</a><br/>
 					</td>
 			    </tr>
 		    </table>
@@ -24,7 +21,11 @@
 		$projectDetail
 	#end
 	$content
-	</div></div></td></tr></table><hr/> 
-		<center style='font-size:.8em;'><a href='http://github.com/SalesforceFoundation/ApexDoc' target='_blank'>Powered By ApexDoc</a></center>
+	</tr></table>
+	<hr/>
+		<center style='font-size:.8em;'><a href='https://github.com/Bobnix/ApexDocEx' target='_blank'>Powered By ApexDoc</a></center>
+		<script type='text/javascript' src='https://code.jquery.com/jquery-1.11.1.min.js'></script>
+        <script type='text/javascript' src='CollapsibleList.js'></script>
+        <script type='text/javascript' src='ApexDoc.js'></script>
 	</body>
 </html>

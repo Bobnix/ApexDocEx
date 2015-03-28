@@ -1,30 +1,41 @@
-<td width='20%' vertical-align='top'>
-	<div class='sidebar'>
-		<div class='navbar'>
-			<nav role='navigation'>
-				<ul id='mynavbar'>
-					<li id='idMenuindex'>
-						<a href='.' onclick="gotomenu('index.html', event);return false;" class='nav-item'>Home</a>
-					</li>
-					#foreach ($group in $groups.entrySet())
-					    <li class='header' id='idMenu$group.value.ContentFilename'>
-					    	#if (!!$group.value.ContentFilename)
-					    		<a class='nav-item nav-section-title' href='.' onclick="gotomenu('${group.value.ContentFilename}.html', event);return false;">$group.key<span class='caret'></span></a>
-					    	#else
-					    		<a class='nav-item nav-section-title' href='.'>$group.key<span class='caret'></span></a>
-					    	#end
-					    </li>
-						<ul>
-							#foreach ($class in $classes.get($group.key))
-									<li class='subitem classscope$!class.scope' id='idMenu$class.className'>
-										<a href='.' onclick="gotomenu('${class.className}.html', event);return false;" class='nav-item sub-nav-item scope$!class.scope'>$class.className</a>
-									</li>
-							#end
-						</ul>
-					#end
-				</ul>
-			</nav>
-		</div>
-	</div>
+<table width='100%'>
+    <tr>
+        <td colspan='2' style='text-align: center;' >
+            Show:
+            #foreach ($scope in $scopeList)
+                <input type='checkbox' checked='checked' id='cbx$scope' onclick='ToggleScope("$scope", this.checked );' />$scope&nbsp;&nbsp;
+            #end
+        </td>
+    </tr>
 
-</td>
+<tr style='vertical-align:top;' >
+    <td width='20%' vertical-align='top'>
+        <div class='sidebar'>
+            <div class='navbar'>
+                <nav role='navigation'>
+                    <ul id='mynavbar'>
+                        <li id='idMenuindex'>
+                            <a href='.' onclick="gotomenu('index.html', event);return false;" class='nav-item'>Home</a>
+                        </li>
+                        #foreach ($group in $groups.entrySet())
+                            <li class='header' id='idMenu$group.value.ContentFilename'>
+                                #if (!!$group.value.ContentFilename)
+                                    <a class='nav-item nav-section-title' href='.' onclick="gotomenu('${group.value.ContentFilename}.html', event);return false;">$group.key<span class='caret'></span></a>
+                                #else
+                                    <a class='nav-item nav-section-title' href='.'>$group.key<span class='caret'></span></a>
+                                #end
+                            </li>
+                            <ul>
+                                #foreach ($class in $classes.get($group.key))
+                                        <li class='subitem classscope$!class.scope' id='idMenu$class.className'>
+                                            <a href='.' onclick="gotomenu('${class.className}.html', event);return false;" class='nav-item sub-nav-item scope$!class.scope'>$class.className</a>
+                                        </li>
+                                #end
+                            </ul>
+                        #end
+                    </ul>
+                </nav>
+            </div>
+        </div>
+
+    </td>

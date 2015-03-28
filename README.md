@@ -7,6 +7,10 @@ ApexDocEx is a java app that you can use to document your Salesforce Apex classe
 ## Credits
 ApexDoc was originally created by Aslam Bari (http://techsahre.blogspot.com/2011/01/apexdoc-salesforce-code-documentation.html).  It was then taken and extended by David Habib, at Groundwire, in 2011.  It has subsequently been enhanced by David Habib of the Salesforce Foundation in late 2014. In early 2015, it was further forked by Bob Roberts so that development can be taken in a different direction.
 
+## Why Fork ApexDoc
+ApexDoc is, at this point, pretty stable. I made some contributions but I wanted to take development in a different direction without messing with the existing stability or forcing the team to learn a whole host of new technologies.
+
+
 ## Command Line Parameters
 | parameter | description |
 |-------------------------- | ---------------------|

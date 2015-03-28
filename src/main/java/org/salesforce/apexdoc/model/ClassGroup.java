@@ -1,5 +1,7 @@
 package org.salesforce.apexdoc.model;
 
+import java.io.File;
+
 public class ClassGroup {
     private String strName;
     private String strContentSource;
@@ -27,8 +29,8 @@ public class ClassGroup {
 
     public String getContentFilename() {
         if (strContentSource != null) {
-            int idx1 = strContentSource.lastIndexOf("/");
-            int idx2 = strContentSource.lastIndexOf(".");
+            int idx1 = strContentSource.lastIndexOf(File.separatorChar);
+            int idx2 = strContentSource.lastIndexOf('.');
             if (idx1 != -1 && idx2 != -1) {
                 return strContentSource.substring(idx1 + 1, idx2);
             }

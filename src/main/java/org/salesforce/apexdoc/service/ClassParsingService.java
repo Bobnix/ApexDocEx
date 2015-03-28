@@ -77,7 +77,7 @@ public class ClassParsingService {
                 }
 
                 if (commentsStarted && strLine.endsWith("*/")) {
-                    strLine = strLine.replace("*/", "");
+                    strLine = strLine.replaceAll("\\*+/", "");
                     if(docBlockStarted){
                     	lstComments.add(strLine);
                     	docBlockStarted = false;
@@ -199,7 +199,7 @@ public class ClassParsingService {
     	Map<String, List<String>> tokenValues = new HashMap<>();
         String lastToken = null;
         String lastTokenValue = null;
-        Pattern p = Pattern.compile("(@[\\w]*)(.*)");
+        Pattern p = Pattern.compile("(@[\\w-]*)(.*)");
     	
         for (String comment : docBlock) {
         	if(comment.contains("/*") || comment.contains("*/")){
@@ -210,7 +210,7 @@ public class ClassParsingService {
             Matcher m = p.matcher(comment);
         	if (m.find()) {
         		if(lastTokenValue != null){
-        			tokenValues.get(lastToken).add(lastTokenValue);
+        			tokenValues.get(lastToken).add(lastTokenValue.trim());
         		}
         		
         		lastToken = m.group(1);
