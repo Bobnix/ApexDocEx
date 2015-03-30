@@ -3,7 +3,8 @@
         <td colspan='2' style='text-align: center;' >
             Show:
             #foreach ($scope in $scopeList)
-                <input type='checkbox' checked='checked' id='cbx$scope' onclick='ToggleScope("$scope", this.checked );' />$scope&nbsp;&nbsp;
+                <input type='checkbox' checked='checked' id='cbx$scope' onclick='ToggleScope("$scope", this.checked );' />
+                <label for='cbx$scope'>$scope</label>&nbsp;&nbsp;
             #end
         </td>
     </tr>

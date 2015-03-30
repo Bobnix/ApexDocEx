@@ -1,6 +1,8 @@
 package org.salesforce.apexdoc.service;
 
 import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.*;
@@ -48,7 +50,7 @@ public class FileManager {
                 return true;
             }
 
-        } catch (IOException e) {
+        } catch (IOException | URISyntaxException e) {
 
             e.printStackTrace();
         }
@@ -175,18 +177,24 @@ public class FileManager {
         return getTemplateService().createLinks(context);
     }
 
-    private void doCopy(String source, String target) throws IOException{
-        URL resource = this.getClass().getClassLoader().getResource(source);
-        if(resource != null) {
-            File sourceFile = new File(resource.getFile());
-            FileUtils.copyFile(sourceFile, new File(target + "/" + source));
-        } else {
-            System.err.println("Failed to copy asset to target");
+    private void doCopy(String source, String target) throws IOException, URISyntaxException {
+        InputStream is = this.getClass().getClassLoader().getResourceAsStream(source);
+        FileOutputStream to = new FileOutputStream(target + "/" + source);
+
+        byte[] buffer = new byte[4096];
+        int bytesRead;
+
+        while ((bytesRead = is.read(buffer)) != -1) {
+            to.write(buffer, 0, bytesRead); // write
         }
+
+        to.flush();
+        to.close();
+        is.close();
     }
 
     //TODO: Move the assets into their own directory and copy the whole thing at once
-    private void copy(String toFileName) throws IOException {
+    private void copy(String toFileName) throws IOException, URISyntaxException {
         doCopy("apex_doc_logo.png", toFileName);
         doCopy("ApexDoc.css", toFileName);
         doCopy("ApexDoc.js", toFileName);

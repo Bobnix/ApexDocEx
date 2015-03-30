@@ -1,14 +1,16 @@
 <!doctype HTML>
 <html>
 	<head>
+	    <meta charset="utf-8">
 		<link rel='stylesheet' type='text/css' href='ApexDoc.css' />
+		<title>ApexDocs</title>
 	</head>
 	<body>
 	#if ("$!projectDetail" == "")
 		<div class='topsection'>
 			<table>
 				<tr>
-					<td><img src='apex_doc_logo.png' style='border:1px solid #000;'/></td>
+					<td><img src='apex_doc_logo.png' style='border:1px solid #000;' alt='ApexDoc' /></td>
 					<td>      
 						<h2 style='margin:0px;'>Project Demo</h2>
 						Check out the gitHub project at:<br/>
