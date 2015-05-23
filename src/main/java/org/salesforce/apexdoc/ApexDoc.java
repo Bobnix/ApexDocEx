@@ -10,9 +10,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
 
+import com.lexicalscope.jewel.cli.ArgumentValidationException;
+import com.lexicalscope.jewel.cli.Cli;
+import com.lexicalscope.jewel.cli.CliFactory;
 import org.apache.commons.io.FilenameUtils;
 import org.salesforce.apexdoc.model.ClassGroup;
 import org.salesforce.apexdoc.model.ClassModel;
+import org.salesforce.apexdoc.model.OptionsModel;
 import org.salesforce.apexdoc.service.ClassParsingService;
 import org.salesforce.apexdoc.service.FileManager;
 
@@ -37,39 +41,26 @@ public class ApexDoc {
     }
 
     private void RunApexDoc(String[] args) {
-        String sourceDirectory = "";
-        String targetDirectory = "";
-        String homefilepath = "";
-        String authorfilepath = "";
-        String hostedSourceURL = "";
 
-        // parse command line parameters
-        for (int i = 0; i < args.length; i++) {
+        Cli<OptionsModel> cli = CliFactory.createCli(OptionsModel.class);
+        OptionsModel result = null;
+        try
+        {
+            result = cli.parseArguments(args);
+        }
+        catch(ArgumentValidationException e)
+        {
+            printHelp();
+            System.exit(-1);
+        }
 
-            if (args[i] != null) {
-                if (args[i].equalsIgnoreCase("-s")) {
-                    sourceDirectory = args[++i];
-                } else if (args[i].equalsIgnoreCase("-g")) {
-                    hostedSourceURL = args[++i];
-                } else if (args[i].equalsIgnoreCase("-t")) {
-                    targetDirectory = args[++i];
-                } else if (args[i].equalsIgnoreCase("-h")) {
-                    homefilepath = args[++i];
-                } else if (args[i].equalsIgnoreCase("-a")) {
-                    authorfilepath = args[++i];
-                } else if (args[i].equalsIgnoreCase("-p")) {
-                    String strScope = args[++i];
-                    rgstrScope = strScope.split(";");
-                } else {
-                    printHelp();
-                    System.exit(-1);
-                }
-            }
+        if(result.getScope() != null){
+            rgstrScope = result.getScope().split(";");
         }
 
         // find all the files to parse
         FileManager fm = getFileManager();
-        List<File> files = fm.getFiles(sourceDirectory);
+        List<File> files = fm.getFiles(result.getSourceDirectory());
         List<ClassModel> cModels = new ArrayList<>();
 
         // parse each file, creating a class model for it
@@ -85,14 +76,14 @@ public class ApexDoc {
         }
 
         // create our Groups
-        TreeMap<String, ClassGroup> mapGroupNameToClassGroup = createMapGroupNameToClassGroup(cModels, sourceDirectory);
+        TreeMap<String, ClassGroup> mapGroupNameToClassGroup = createMapGroupNameToClassGroup(cModels, result.getSourceDirectory());
 
         // load up optional specified file templates
-        String projectDetail = fm.parseHTMLFile(authorfilepath);
-        String homeContents = fm.parseHTMLFile(homefilepath);
+        String projectDetail = fm.parseHTMLFile(result.getAuthorFile());
+        String homeContents = fm.parseHTMLFile(result.getHomeFile());
 
         // create our set of HTML files
-        fm.createDoc(mapGroupNameToClassGroup, cModels, projectDetail, homeContents, hostedSourceURL, rgstrScope, targetDirectory);
+        fm.createDoc(mapGroupNameToClassGroup, cModels, projectDetail, homeContents, result.getSourceUrl(), rgstrScope, result.getTargetDirectory());
 
         // we are done!
         System.out.println("ApexDoc has completed!");
@@ -102,12 +93,8 @@ public class ApexDoc {
         System.out.println("ApexDoc - a tool for generating documentation from Salesforce Apex code class files.\n");
         System.out.println("    Invalid Arguments detected.  The correct syntax is:\n");
         System.out.println("apexdoc -s <source_directory> [-t <target_directory>] [-g <source_url>] [-h <homefile>] [-a <authorfile>] [-p <scope>]\n");
-        System.out.println("<source_directory> - The folder location which contains your apex .cls classes");
-        System.out.println("<target_directory> - Optional. Specifies your target folder where documentation will be generated.");
-        System.out.println("<source_url> - Optional. Specifies a URL where the source is hosted (so ApexDoc can provide links to your source).");
-        System.out.println("<homefile> - Optional. Specifies the html file that contains the contents for the home page\'s content area.");
-        System.out.println("<authorfile> - Optional. Specifies the text file that contains project information for the documentation header.");
-        System.out.println("<scope> - Optional. Semicolon seperated list of scopes to document.  Defaults to 'global;public'. ");
+        Cli<OptionsModel> cli = CliFactory.createCli(OptionsModel.class);
+        System.out.println(cli.getHelpMessage());
     }
 
     private TreeMap<String, ClassGroup> createMapGroupNameToClassGroup(List<ClassModel> cModels,
