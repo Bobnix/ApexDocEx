@@ -6,25 +6,25 @@
 		<title>ApexDocs</title>
 	</head>
 	<body>
-	#if ("$!projectDetail" == "")
-		<div class='topsection'>
-			<table>
-				<tr>
-					<td><img src='apex_doc_logo.png' style='border:1px solid #000;' alt='ApexDoc' /></td>
-					<td>      
-						<h2 style='margin:0px;'>Project Demo</h2>
-						Check out the gitHub project at:<br/>
-						<a href='https://github.com/Bobnix/ApexDocEx'>https://github.com/Bobnix/ApexDocEx</a><br/>
-					</td>
-			    </tr>
-		    </table>
-	    </div>
-	#else
-		$projectDetail
-	#end
-	$content
-	</tr></table>
-	<hr/>
+        #if ("$!projectDetail" == "")
+            <div class='topsection'>
+                <table>
+                    <tr>
+                        <td><img src='apex_doc_logo.png' style='border:1px solid #000;' alt='ApexDoc' /></td>
+                        <td>
+                            <h2 style='margin:0px;'>Project Demo</h2>
+                            Check out the gitHub project at:<br/>
+                            <a href='https://github.com/Bobnix/ApexDocEx'>https://github.com/Bobnix/ApexDocEx</a><br/>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        #else
+            $projectDetail
+        #end
+        $content
+        </tr></table>
+        <hr/>
 		<center style='font-size:.8em;'><a href='https://github.com/Bobnix/ApexDocEx' target='_blank'>Powered By ApexDoc</a></center>
 		<script type='text/javascript' src='https://code.jquery.com/jquery-1.11.1.min.js'></script>
         <script type='text/javascript' src='CollapsibleList.js'></script>

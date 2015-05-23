@@ -1,13 +1,14 @@
-<h2 class='section-title'>
+<h1 class='section-title'>
 	<a target='_blank' class='hostedSourceLink' href='${hostedSourceURL}${class.topmostClassName}.cls#L$class.inameLine'>$class.className</a>
-</h2>
+</h1>
 
 <div class='classSignature'>
 	<a target='_blank' class='hostedSourceLink' href='${hostedSourceURL}${class.topmostClassName}.cls#L$class.inameLine'>$esc.html($class.nameLine)</a>
 </div>
 
+<div class='classDetails'>
 #if ("$!class.description" != "")
-	<div class='classDetails'>$esc.html($class.description)
+	$esc.html($class.description)
 #end
 #if ("$!class.author" != "")
 	<br/><br/>$esc.html($class.author)

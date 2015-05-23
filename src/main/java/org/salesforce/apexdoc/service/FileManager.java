@@ -199,8 +199,6 @@ public class FileManager {
         doCopy("ApexDoc.css", toFileName);
         doCopy("ApexDoc.js", toFileName);
         doCopy("CollapsibleList.js", toFileName);
-        doCopy("toggle_block_btm.gif", toFileName);
-        doCopy("toggle_block_stretch.gif", toFileName);
 
     }
 
