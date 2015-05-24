@@ -28,7 +28,7 @@ public class ClassParsingServiceTest {
         BufferedReader br = new BufferedReader(new InputStreamReader(in));
 
         ClassParsingService service = new ClassParsingService();
-        ClassModel parsedClass = service.parseFileContents(br);
+        ClassModel parsedClass = service.parseFileContents(br, false);
         in.close();
 
         Assert.assertEquals(parsedClass.getChildClassesSorted().size(), 1);

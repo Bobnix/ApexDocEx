@@ -20,7 +20,10 @@ public interface OptionsModel {
     @Option(shortName = "a", longName = "authorFile", description = "Optional. Specifies the text file that contains project information for the documentation header.", defaultToNull=true)
     String getAuthorFile();
 
-    @Option(shortName = "p", longName = "scope", description = " Optional. Semicolon seperated list of scopes to document.  Defaults to 'global;public'.", defaultToNull=true)
+    @Option(shortName = "p", longName = "scope", description = "Optional. Semicolon seperated list of scopes to document.  Defaults to 'global;public'.", defaultToNull=true)
     String getScope();
+
+    @Option(shortName = "i", longName = "ignoreTests", description = "Optional. If set will ignore all test classes")
+    boolean ignoreTests();
 
 }

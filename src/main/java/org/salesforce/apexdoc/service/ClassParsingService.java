@@ -18,7 +18,7 @@ import org.salesforce.apexdoc.model.PropertyModel;
 
 public class ClassParsingService {
 	
-	public ClassModel parseFileContents(BufferedReader br) {
+	public ClassModel parseFileContents(BufferedReader br, boolean ignoreTestClass) {
         try {
             String strLine;
             boolean commentsStarted = false;
@@ -28,6 +28,8 @@ public class ClassParsingService {
             ClassModel cModel = null;
             ClassModel cModelParent = null;
             Stack<ClassModel> cModels = new Stack<>();
+
+            Pattern p = Pattern.compile("(@isTest)|(testmethod)", Pattern.CASE_INSENSITIVE);
 
             // DH: Consider using java.io.StreamTokenizer to read the file a
             // token at a time?
@@ -91,6 +93,10 @@ public class ClassParsingService {
                 		lstComments.add(strLine);
                 	}
                     continue;
+                }
+
+                if(ignoreTestClass && p.matcher(strLine).find()){
+                    return null;
                 }
 
                 // keep track of our nesting so we know which class we are in

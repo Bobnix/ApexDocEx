@@ -67,7 +67,7 @@ public class ApexDoc {
         for (File fromFile : files) {
             String fromFileName = fromFile.getAbsolutePath();
             if (fromFileName.endsWith(".cls")) {
-                ClassModel cModel = parseFileContents(fromFileName);
+                ClassModel cModel = parseFileContents(fromFileName, result.ignoreTests());
                 if (cModel != null) {
                     cModels.add(cModel);
                 }
@@ -121,12 +121,12 @@ public class ApexDoc {
         return map;
     }
 
-    private ClassModel parseFileContents(String filePath) {
+    private ClassModel parseFileContents(String filePath, boolean ignoreTestClass) {
 			try {
 				FileInputStream fstream = new FileInputStream(filePath);
 				DataInputStream in = new DataInputStream(fstream);
 	            BufferedReader br = new BufferedReader(new InputStreamReader(in));
-	            ClassModel parsedClass = getClassParsingService().parseFileContents(br);
+	            ClassModel parsedClass = getClassParsingService().parseFileContents(br, ignoreTestClass);
 	            in.close();
 	            return parsedClass;
 			} catch (IOException e) {
