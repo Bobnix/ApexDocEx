@@ -23,7 +23,7 @@ public interface OptionsModel {
     @Option(shortName = "p", longName = "scope", description = "Optional. Semicolon seperated list of scopes to document.  Defaults to 'global;public'.", defaultToNull=true)
     String getScope();
 
-    @Option(shortName = "i", longName = "ignoreTests", description = "Optional. If set will ignore all test classes")
+    @Option(shortName = "i", longName = "ignoreTests", description = "Optional. If set, will ignore all test classes.")
     boolean ignoreTests();
 
 }
