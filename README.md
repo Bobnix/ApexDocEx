@@ -88,6 +88,7 @@ In order for ApexDoc to identify class methods, the method line must contain an 
 | @description | one or more lines that provide an overview of the method|
 | @param *param name* | a description of what the parameter does|
 | @return | a description of the return value from the method|
+| @throws *exception type*| a description of what condition throws the exception|
 Example
 ```
     /*******************************************************************************************************
@@ -95,6 +96,8 @@ Example
     * @param objectName the name of the object to look up
     * @param fieldName the name of the field to look up
     * @return the describe field result for the given field
+    * @throws InvalidObjectException thrown if the object is not valid
+    * @throws InvalidFieldException thrown if the field is not valid
     */ 
     public static Schema.DescribeFieldResult getFieldDescribe(String objectName, String fieldName) {
 ```

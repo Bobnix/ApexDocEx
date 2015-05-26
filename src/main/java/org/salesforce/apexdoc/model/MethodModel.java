@@ -11,9 +11,11 @@ public class MethodModel extends ApexModel {
 	
 	private List<String> params;
     private String returnType;
+    private List<String> exceptions;
 
     public MethodModel() {
-        params = new ArrayList<String>();
+        params = new ArrayList<>();
+        exceptions = new ArrayList<>();
     }
 
     public void setNameLine(String nameLine, int iLine) {
@@ -34,29 +36,45 @@ public class MethodModel extends ApexModel {
     public void setParams(List<String> params) {
         this.params = params;
     }
-    
+
+    public List<String> getExceptions() {
+        return exceptions;
+    }
+
+    public void setExceptions(List<String> exceptions) {
+        this.exceptions = exceptions;
+    }
+
     public List<List<String>> getSplitParams() {
-    	List<List<String>> splitParams = new ArrayList<List<String>>();
-    	for (String param : params) {
-    		
-            if (param != null && param.trim().length() > 0) {
+        return getSplitValues(params);
+    }
+
+    public List<List<String>> getSplitExceptions() {
+        return getSplitValues(exceptions);
+    }
+
+    private List<List<String>> getSplitValues(List<String> valuesToSplit){
+        List<List<String>> splitValues = new ArrayList<List<String>>();
+        for (String value : valuesToSplit) {
+
+            if (value != null && (value = value.trim()).length() > 0) {
                 Pattern p = Pattern.compile("\\s");
-                Matcher m = p.matcher(param);
-                
-                String paramName;
-                String paramDescription;
+                Matcher m = p.matcher(value);
+
+                String valueName;
+                String valueDescription;
                 if (m.find()) {
-                	int ich = m.start();
-                    paramName = param.substring(0, ich);
-                    paramDescription = param.substring(ich + 1).trim();
+                    int ich = m.start();
+                    valueName = value.substring(0, ich);
+                    valueDescription = value.substring(ich + 1).trim();
                 } else {
-                    paramName = param;
-                    paramDescription = null;
+                    valueName = value;
+                    valueDescription = null;
                 }
-                splitParams.add(Arrays.asList(paramName, paramDescription));
+                splitValues.add(Arrays.asList(valueName, valueDescription));
             }
         }
-    	return splitParams;
+        return splitValues;
     }
 
     public String getReturnType() {
@@ -66,14 +84,14 @@ public class MethodModel extends ApexModel {
     public void setReturnType(String returnType) {
         this.returnType = returnType;
     }
+
     public String getMethodName() {
         String nameLine = getNameLine().trim();
-        if (nameLine != null && nameLine.length() > 0) {
+        if (nameLine.length() > 0) {
         	Pattern p = Pattern.compile("([\\d\\w_]*)[\\s]?\\(");
         	Matcher m = p.matcher(nameLine);
         	if (m.find()) {
-        		String val = m.group(1);
-        		return val;
+        		return m.group(1);
         	}
         }
         return "";
@@ -94,7 +112,10 @@ public class MethodModel extends ApexModel {
         	setReturns(data.get("@return").get(0));
         }
         if(data.containsKey("@param")){
-        	setParams(data.get("@param"));
+            setParams(data.get("@param"));
+        }
+        if(data.containsKey("@throws")){
+            setExceptions(data.get("@throws"));
         }
 	}
 }

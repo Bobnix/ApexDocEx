@@ -70,6 +70,15 @@
 					<div class='methodSubTitle'>Return Value</div>
 					<div class='methodReturns'>$esc.html($method.returns)</div>
 				#end
+				#if ("$!method.exceptions" != "")
+					<div class='methodSubTitle'>Throws</div>
+                    #foreach ($exp in $method.splitExceptions)
+                        <div class='paramName'>$exp[0]</div>
+                        #if ("$!exp[1]" != "")
+                            <div class='paramDescription'>$exp[1]</div>
+                        #end
+                    #end
+				#end
 				#if ("$!method.author" != "")
 					<div class='methodSubTitle'>Author</div>
 					<div class='methodReturns'>$esc.html($method.author)</div>

@@ -211,7 +211,7 @@ public class ClassParsingService {
         	if(comment.contains("/*") || comment.contains("*/")){
         		continue;
         	}
-            comment = comment.trim().replaceAll("^\\s?\\*\\s?", "");
+            comment = comment.replaceAll("^\\s?\\*\\s?", "").trim();
             
             Matcher m = p.matcher(comment);
         	if (m.find()) {
