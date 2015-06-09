@@ -70,7 +70,7 @@
 					<div class='methodSubTitle'>Return Value</div>
 					<div class='methodReturns'>$esc.html($method.returns)</div>
 				#end
-				#if ("$!method.exceptions" != "")
+				#if ($method.exceptions.size() > 0)
 					<div class='methodSubTitle'>Throws</div>
                     #foreach ($exp in $method.splitExceptions)
                         <div class='paramName'>$exp[0]</div>
