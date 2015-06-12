@@ -83,7 +83,7 @@ public class ApexDoc {
         String homeContents = fm.parseHTMLFile(result.getHomeFile());
 
         // create our set of HTML files
-        fm.createDoc(mapGroupNameToClassGroup, cModels, projectDetail, homeContents, result.getSourceUrl(), rgstrScope, result.getTargetDirectory());
+        fm.createDoc(mapGroupNameToClassGroup, cModels, projectDetail, homeContents, rgstrScope, result.getTargetDirectory());
 
         // we are done!
         System.out.println("ApexDoc has completed!");

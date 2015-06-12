@@ -43,6 +43,7 @@ body {
 
 .section-title a {
     color: white;
+    font-size: .8em;
 }
 
 /* the horizontal section headers that declares the Methods & Properties subsections */
@@ -105,6 +106,7 @@ body {
 
 .classSignature a {
     color: mediumblue;
+    font-size: .9em;
 }
 
 /* the description, author, date for the class */

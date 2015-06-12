@@ -1,9 +1,7 @@
 package org.salesforce.apexdoc.service;
 
 import java.io.*;
-import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.util.*;
 
@@ -64,12 +62,11 @@ public class FileManager {
      * @param cModels   The class models to make html files for
      * @param projectDetail The text to use in the header
      * @param homeContents  The html to use inside the home page
-     * @param hostedSourceURL   The url to the hosted source files
      * @param rgstrScope    the scopes to process
      * @param path  the destination folder to put the files in
      */
     public void createDoc(TreeMap<String, ClassGroup> mapGroupNameToClassGroup, List<ClassModel> cModels,
-            String projectDetail, String homeContents, String hostedSourceURL, String[] rgstrScope, String path) {
+            String projectDetail, String homeContents, String[] rgstrScope, String path) {
         String links = getPageLinks(mapGroupNameToClassGroup, cModels, rgstrScope);
 
         homeContents = StringUtils.isBlank(homeContents) ? DEFAULT_HOME_CONTENTS : homeContents;
@@ -89,12 +86,12 @@ public class FileManager {
                 fileName = cModel.getClassName();
                 contents += "<td class='contentTD'>";
 
-                contents += htmlForClassModel(cModel, hostedSourceURL);
+                contents += htmlForClassModel(cModel);
 
                 // deal with any nested classes
                 for (ClassModel cmChild : cModel.getChildClassesSorted()) {
                     contents += "<p/>";
-                    contents += htmlForClassModel(cmChild, hostedSourceURL);
+                    contents += htmlForClassModel(cmChild);
                 }
 
             } else {
@@ -110,15 +107,13 @@ public class FileManager {
     /**
      * Creates the HTML for the provided class, including its property and methods
      * @param cModel    The {@link ClassModel} to generate the html from
-     * @param hostedSourceURL   The url where the source will be located
      * @return html string
      */
-    private String htmlForClassModel(ClassModel cModel, String hostedSourceURL) {
+    private String htmlForClassModel(ClassModel cModel) {
  
         // Create a context and add data to the template placeholder
         VelocityContext context = new VelocityContext();
         context.put("class", cModel);
-        context.put("hostedSourceURL", hostedSourceURL);
  
         return getTemplateService().createClassPage(context);
     }

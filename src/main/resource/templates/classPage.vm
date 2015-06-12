@@ -1,9 +1,9 @@
 <h1 class='section-title'>
-	<a target='_blank' class='hostedSourceLink' href='${hostedSourceURL}${class.topmostClassName}.cls#L$class.inameLine'>$class.className</a>
+	$class.className
 </h1>
 
 <div class='classSignature'>
-	<a target='_blank' class='hostedSourceLink' href='${hostedSourceURL}${class.topmostClassName}.cls#L$class.inameLine'>$esc.html($class.nameLine)</a>
+	$esc.html($class.nameLine)
 </div>
 
 <div class='classDetails'>
@@ -26,7 +26,7 @@
     		<tr class='propertyscope$prop.scope'>
     			<td class='clsPropertyName'>$prop.propertyName</td>
     			<td><div class='clsPropertyDeclaration'>
-    				<a target='_blank' class='hostedSourceLink' href='${hostedSourceURL}${class.topmostClassName}.cls#L$prop.inameLine'>$esc.html($prop.nameLine)</a>
+    				$esc.html($prop.nameLine)
     			</div>
     			<div class='clsPropertyDescription'>$esc.html($prop.description)</div>
     		</tr>
@@ -52,7 +52,7 @@
 			<div class='methodscope$method.getScope' >
 				<h2 class='methodHeader'><a id='$method.methodName'>$method.methodName</a></h2>
 				<div class='methodSignature'>
-					<a target='_blank' class='hostedSourceLink' href='${hostedSourceURL}${class.topmostClassName}.cls#L$method.inameLine'>$esc.html($method.nameLine)</a>
+					$esc.html($method.nameLine)
 				</div>
 				#if ("$!method.description" != "")
 					<div class='methodDescription'>$esc.html($method.description)</div>
