@@ -8,13 +8,13 @@
 
 <div class='classDetails'>
 #if ("$!class.description" != "")
-	$esc.html($class.description)
+	$class.description
 #end
 #if ("$!class.author" != "")
-	<br/><br/>$esc.html($class.author)
+	<br/><br/>$class.author
 #end
 #if ("$!class.date" != "")
-	<br/>$esc.html($class.date)
+	<br/>$class.date
 #end
 </div><p/>
 
@@ -28,7 +28,7 @@
     			<td><div class='clsPropertyDeclaration'>
     				$esc.html($prop.nameLine)
     			</div>
-    			<div class='clsPropertyDescription'>$esc.html($prop.description)</div>
+    			<div class='clsPropertyDescription'>$prop.description</div>
     		</tr>
     	#end
     	</table>
@@ -55,7 +55,7 @@
 					$esc.html($method.nameLine)
 				</div>
 				#if ("$!method.description" != "")
-					<div class='methodDescription'>$esc.html($method.description)</div>
+					<div class='methodDescription'>$method.description</div>
 				#end
 				#if ($method.params.size() > 0)
 					<div class='methodSubTitle'>Parameters</div>
@@ -68,7 +68,7 @@
 				#end
 				#if ("$!method.returns" != "")
 					<div class='methodSubTitle'>Return Value</div>
-					<div class='methodReturns'>$esc.html($method.returns)</div>
+					<div class='methodReturns'>$method.returns</div>
 				#end
 				#if ($method.exceptions.size() > 0)
 					<div class='methodSubTitle'>Throws</div>
@@ -81,11 +81,11 @@
 				#end
 				#if ("$!method.author" != "")
 					<div class='methodSubTitle'>Author</div>
-					<div class='methodReturns'>$esc.html($method.author)</div>
+					<div class='methodReturns'>$method.author</div>
 				#end
 				#if ("$!method.date" != "")
 					<div class='methodSubTitle'>Date</div>
-					<div class='methodReturns'>$esc.html($method.date)</div>
+					<div class='methodReturns'>$method.date</div>
 				#end
 			</div>
 		#end
