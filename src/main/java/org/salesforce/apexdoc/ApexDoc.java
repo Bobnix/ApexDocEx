@@ -83,7 +83,7 @@ public class ApexDoc {
         String homeContents = fm.parseHTMLFile(result.getHomeFile());
 
         // create our set of HTML files
-        fm.createDoc(mapGroupNameToClassGroup, cModels, projectDetail, homeContents, rgstrScope, result.getTargetDirectory());
+        fm.createDoc(mapGroupNameToClassGroup, cModels, projectDetail, homeContents, rgstrScope, result.getTargetDirectory(), result.getCssFile());
 
         // we are done!
         System.out.println("ApexDoc has completed!");
@@ -92,7 +92,7 @@ public class ApexDoc {
     private static void printHelp() {
         System.out.println("ApexDoc - a tool for generating documentation from Salesforce Apex code class files.\n");
         System.out.println("    Invalid Arguments detected.  The correct syntax is:\n");
-        System.out.println("apexdoc -s <source_directory> [-t <target_directory>] [-g <source_url>] [-h <homefile>] [-a <authorfile>] [-p <scope>]\n");
+        System.out.println("apexdoc -s <source_directory> [-t <target_directory>] [-h <homefile>] [-a <authorfile>] [-p <scope>] [-c <cssfile>]\n");
         Cli<OptionsModel> cli = CliFactory.createCli(OptionsModel.class);
         System.out.println(cli.getHelpMessage());
     }

@@ -23,4 +23,7 @@ public interface OptionsModel {
     @Option(shortName = "i", longName = "ignoreTests", description = "Optional. If set, will ignore all test classes.")
     boolean ignoreTests();
 
+    @Option(shortName = "c", longName = "cssFile", description = "Optional. Specifies the file that contains any custom css.")
+    String getCssFile();
+
 }

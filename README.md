@@ -16,11 +16,11 @@ ApexDoc is, at this point, pretty stable. I made some contributions but I wanted
 |-------------------------- | ---------------------|
 | -s *source_directory* | The folder location which contains your apex .cls classes.|
 | -t *target_directory* | The folder location where documentation will be generated to.|
-| -g *source_url* | A URL where the source is hosted (so ApexDoc can provide links to your source). Optional.|
 | -h *home_page* | The full path to an html file that contains the contents for the home page's content area. Optional.|
 | -a *banner_page* | The full path to an html file that contains the content for the banner section of each generated page. Optional.|
 | -p *scope* | A semicolon separated list of scopes to document. Defaults to 'global;public;webService'. Optional.|
 | -i | If set, will ignore all test classes. Optional.|
+| -c *css_file* | Specifies the file that contains any custom css. Optional|
 
 ## Usage
 Copy apexdoc.jar file to your local machine, somewhere on your path.  Each release tag in gitHub has the matching apexdoc.jar attached to it.  Make sure that java is on your path.  Invoke ApexDoc like this example:

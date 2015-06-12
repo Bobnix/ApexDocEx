@@ -19,7 +19,7 @@ public class FileManager {
 
     private TemplateService templateService;
 
-    private boolean createHTML(TreeMap<String, String> mapFNameToContent, String path) {
+    private boolean createHTML(TreeMap<String, String> mapFNameToContent, String path, String cssFile) {
         if (StringUtils.isBlank(path)){
             path = ".";
         }
@@ -44,6 +44,9 @@ public class FileManager {
                     writer.close();
                     System.out.println(fileName + " Processed...");
                 }
+                if(StringUtils.isNotBlank(cssFile)){
+                    FileUtils.copyFile(new File(cssFile), new File(path + File.separator + "custom.css"));
+                }
                 copy(path);
                 return true;
             }
@@ -66,19 +69,21 @@ public class FileManager {
      * @param path  the destination folder to put the files in
      */
     public void createDoc(TreeMap<String, ClassGroup> mapGroupNameToClassGroup, List<ClassModel> cModels,
-            String projectDetail, String homeContents, String[] rgstrScope, String path) {
+            String projectDetail, String homeContents, String[] rgstrScope, String path, String cssFile) {
         String links = getPageLinks(mapGroupNameToClassGroup, cModels, rgstrScope);
+
+        boolean hasCss = StringUtils.isNotBlank(cssFile);
 
         homeContents = StringUtils.isBlank(homeContents) ? DEFAULT_HOME_CONTENTS : homeContents;
         homeContents = links + "<td class='contentTD'>" + "<h2 class='section-title'>Home</h2>" + homeContents + "</td>";
-        homeContents = getPageWrapper(projectDetail, homeContents);
+        homeContents = getPageWrapper(projectDetail, homeContents, hasCss);
 
         String fileName;
         TreeMap<String, String> mapFNameToContent = new TreeMap<>();
         mapFNameToContent.put("index", homeContents);
 
         // create our Class Group content files
-        createClassGroupContent(mapFNameToContent, links, projectDetail, mapGroupNameToClassGroup);
+        createClassGroupContent(mapFNameToContent, links, projectDetail, mapGroupNameToClassGroup, hasCss);
 
         for (ClassModel cModel : cModels) {
             String contents = links;
@@ -98,10 +103,10 @@ public class FileManager {
                 continue;
             }
 
-            contents = getPageWrapper(projectDetail, contents);
+            contents = getPageWrapper(projectDetail, contents, hasCss);
             mapFNameToContent.put(fileName, contents);
         }
-        createHTML(mapFNameToContent, path);
+        createHTML(mapFNameToContent, path, cssFile);
     }
 
     /**
@@ -120,7 +125,7 @@ public class FileManager {
 
     // create our Class Group content files
     private void createClassGroupContent(TreeMap<String, String> mapFNameToContent, String links, String projectDetail,
-            TreeMap<String, ClassGroup> mapGroupNameToClassGroup) {
+            TreeMap<String, ClassGroup> mapGroupNameToClassGroup, Boolean hasCss) {
 
         for (String strGroup : mapGroupNameToClassGroup.keySet()) {
             ClassGroup cg = mapGroupNameToClassGroup.get(strGroup);
@@ -129,7 +134,7 @@ public class FileManager {
                 if (!"".equals(cgContent)) {
                     String strHtml = getPageWrapper(projectDetail, links + "<td class='contentTD'>" +
                             "<h2 class='section-title'>" +
-                            StringEscapeUtils.escapeHtml4(cg.getName()) + "</h2>" + cgContent + "</td>");
+                            StringEscapeUtils.escapeHtml4(cg.getName()) + "</h2>" + cgContent + "</td>", hasCss);
                     mapFNameToContent.put(cg.getContentFilename(), strHtml);
                 }
             }
@@ -230,12 +235,13 @@ public class FileManager {
         return "";
     }
     
-    private String getPageWrapper(String projectDetail, String content) {
+    private String getPageWrapper(String projectDetail, String content, Boolean hasCss) {
  
         // Create a context and add data to the template placeholder
         VelocityContext context = new VelocityContext();
         context.put("projectDetail", projectDetail);
         context.put("content", content);
+        context.put("hasCss", hasCss);
  
         return getTemplateService().createPageWrapper(context);
     }
