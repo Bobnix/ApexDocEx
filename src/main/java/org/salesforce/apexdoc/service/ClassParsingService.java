@@ -17,6 +17,9 @@ import org.salesforce.apexdoc.model.MethodModel;
 import org.salesforce.apexdoc.model.PropertyModel;
 
 public class ClassParsingService {
+
+    private Pattern testMethodPattern = Pattern.compile("(@isTest)|(testmethod)", Pattern.CASE_INSENSITIVE);
+    private Pattern commentTokenPattern = Pattern.compile("(@[\\w-]*)(.*)");
 	
 	public ClassModel parseFileContents(BufferedReader br, boolean ignoreTestClass) {
         try {
@@ -29,7 +32,7 @@ public class ClassParsingService {
             ClassModel cModelParent = null;
             Stack<ClassModel> cModels = new Stack<>();
 
-            Pattern p = Pattern.compile("(@isTest)|(testmethod)", Pattern.CASE_INSENSITIVE);
+
 
             // DH: Consider using java.io.StreamTokenizer to read the file a
             // token at a time?
@@ -95,7 +98,7 @@ public class ClassParsingService {
                     continue;
                 }
 
-                if(ignoreTestClass && p.matcher(strLine).find()){
+                if(ignoreTestClass && testMethodPattern.matcher(strLine).find()){
                     return null;
                 }
 
@@ -205,7 +208,6 @@ public class ClassParsingService {
     	Map<String, List<String>> tokenValues = new HashMap<>();
         String lastToken = null;
         String lastTokenValue = null;
-        Pattern p = Pattern.compile("(@[\\w-]*)(.*)");
     	
         for (String comment : docBlock) {
         	if(comment.contains("/*") || comment.contains("*/")){
@@ -213,7 +215,7 @@ public class ClassParsingService {
         	}
             comment = comment.replaceAll("^\\s?\\*\\s?", "").trim();
             
-            Matcher m = p.matcher(comment);
+            Matcher m = commentTokenPattern.matcher(comment);
         	if (m.find()) {
         		if(lastTokenValue != null){
         			tokenValues.get(lastToken).add(lastTokenValue.trim());

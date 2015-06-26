@@ -179,27 +179,14 @@ public class FileManager {
 
     private void doCopy(String source, String target) throws IOException, URISyntaxException {
         InputStream is = this.getClass().getClassLoader().getResourceAsStream(source);
-        FileOutputStream to = new FileOutputStream(target + "/" + source);
-
-        byte[] buffer = new byte[4096];
-        int bytesRead;
-
-        while ((bytesRead = is.read(buffer)) != -1) {
-            to.write(buffer, 0, bytesRead); // write
-        }
-
-        to.flush();
-        to.close();
-        is.close();
+        FileUtils.copyInputStreamToFile(is, new File(target + "/" + source));
     }
 
-    //TODO: Move the assets into their own directory and copy the whole thing at once
     private void copy(String toFileName) throws IOException, URISyntaxException {
         doCopy("apex_doc_logo.png", toFileName);
         doCopy("ApexDoc.css", toFileName);
         doCopy("ApexDoc.js", toFileName);
         doCopy("CollapsibleList.js", toFileName);
-
     }
 
     public List<File> getFiles(String path) {
@@ -209,7 +196,7 @@ public class FileManager {
     protected String parseFile(String filePath) {
         try {
             if (StringUtils.isNotBlank(filePath)) {
-                return new String(Files.readAllBytes(new File(filePath).toPath()));
+                return FileUtils.readFileToString(new File(filePath));
             }
         } catch (IOException e) {
             e.printStackTrace();
