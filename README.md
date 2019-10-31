@@ -1,4 +1,4 @@
-ApexDocEx
+ApexDocEx (DEPRECATED)
 =======
 [![Build Status](https://travis-ci.org/Bobnix/ApexDocEx.svg?branch=master)](https://travis-ci.org/Bobnix/ApexDocEx)
 
